@@ -33,6 +33,7 @@ export const usePollData = (pollId: string | string[] | undefined) => {
   const [isCreator, setIsCreator] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [pendingVotes, setPendingVotes] = useState<Record<number, VoteType>>({});
+  const [identifier, setIdentifier] = useState<string | null>(null);
 
   useEffect(() => {
     if (pollId) loadPoll(pollId.toString());
@@ -130,17 +131,18 @@ export const usePollData = (pollId: string | string[] | undefined) => {
       console.log('Votes loaded:', votes);
 
       // Get user identifier for vote checking
-      let identifier = null;
+      let newIdentifier = null;
       if (user?.email) {
-        identifier = user.email;
+        newIdentifier = user.email;
       } else {
         try {
           const anonId = await getOrCreateAnonId();
-          identifier = anonId;
+          newIdentifier = anonId;
         } catch (anonError) {
           console.warn('Could not get anonymous ID:', anonError);
         }
       }
+      setIdentifier(newIdentifier);
 
       console.log('User identifier:', identifier);
 
@@ -203,6 +205,15 @@ export const usePollData = (pollId: string | string[] | undefined) => {
 
       setGames(formattedGames);
       setPendingVotes(initialVotes);
+      // For anonymous users, try to load votes from local storage
+      if (!user) {
+        try {
+          const savedVotes = await (await import('@react-native-async-storage/async-storage')).default.getItem(`poll_votes_${id}`);
+          if (savedVotes) {
+            setPendingVotes(JSON.parse(savedVotes));
+          }
+        } catch { }
+      }
     } catch (err) {
       console.error('Error in loadPoll:', err);
       setError((err as Error).message || 'Failed to load poll');
@@ -222,5 +233,6 @@ export const usePollData = (pollId: string | string[] | undefined) => {
     pendingVotes,
     setPendingVotes,
     reload: () => pollId && loadPoll(pollId.toString()),
+    identifier,
   };
 };

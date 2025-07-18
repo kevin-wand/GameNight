@@ -75,18 +75,34 @@ export default function PollScreen() {
     }
   }, [poll]);
 
-  const handleVote = (gameId: number, voteType: VoteType) => {
-    setPendingVotes(prev => {
-      const updated = { ...prev };
-      if (updated[gameId] === voteType) {
-        // If the same icon is clicked again, unselect it
+  const handleVote = async (gameId: number, voteType: VoteType) => {
+    const currentVoterName = user && user.email ? user.email : voterName.trim();
+    if (pendingVotes[gameId] === voteType) {
+      setPendingVotes(prev => {
+        const updated = { ...prev };
         delete updated[gameId];
-      } else {
-        // If a different icon is clicked, only select that one
-        updated[gameId] = voteType;
+        return updated;
+      });
+      // Delete the vote from the database for this voter/game[]
+      if (currentVoterName) {
+        try {
+          await supabase
+            .from('votes')
+            .delete()
+            .eq('poll_id', id)
+            .eq('game_id', gameId)
+            .eq('voter_name', currentVoterName);
+        } catch (err) {
+          console.error('Error deleting vote:', err);
+        }
       }
-      return updated;
-    });
+    } else {
+      setPendingVotes(prev => {
+        const updated = { ...prev };
+        updated[gameId] = voteType;
+        return updated;
+      });
+    }
   };
 
   const submitAllVotes = async () => {
@@ -102,20 +118,13 @@ export default function PollScreen() {
     }
     try {
       setSubmitting(true);
-
-      // Always use entered voterName
-      const trimmedName = voterName.trim();
-      if (!trimmedName) {
+      const currentVoterName = user && user.email ? user.email : voterName.trim();
+      if (!currentVoterName) {
         setNameError(true);
         Toast.show({ type: 'error', text1: 'Please enter your name' });
         return;
       }
-      const finalName = trimmedName;
-
-      console.log('Submitting votes with name:', finalName);
-      console.log('Pending votes:', pendingVotes);
-
-      // Submit each vote
+      const finalName = currentVoterName;
       for (const [gameIdStr, voteType] of Object.entries(pendingVotes)) {
         const gameId = parseInt(gameIdStr, 10);
 
@@ -162,17 +171,13 @@ export default function PollScreen() {
             vote_type: voteType,
             voter_name: finalName,
           });
-
-          if (insertError) {
-            console.error('Error inserting vote:', insertError);
-            throw insertError;
-          }
+          if (insertError) throw insertError;
         }
       }
-
-      // Save voter name for future use
-      await AsyncStorage.setItem('voter_name', finalName);
-
+      // Save voter name for future use (only for anonymous)
+      if (!user) {
+        await AsyncStorage.setItem('voter_name', finalName);
+      }
       // Insert comment if present
       if (comment.trim()) {
         const { error: commentError } = await supabase.from('poll_comments').insert({
@@ -184,7 +189,6 @@ export default function PollScreen() {
           Toast.show({ type: 'error', text1: 'Failed to submit comment' });
         }
       }
-
       // Mark as voted in local storage for results access
       await AsyncStorage.setItem(`voted_${id}`, 'true');
       await reload();
@@ -232,8 +236,10 @@ export default function PollScreen() {
       <VoterNameInput
         value={voterName}
         onChange={(text) => {
-          setVoterName(text);
-          if (nameError) setNameError(false);
+          if (!user) {
+            setVoterName(text);
+            if (nameError) setNameError(false);
+          }
         }}
         hasError={nameError}
       />

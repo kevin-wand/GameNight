@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Platform, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, Share2, Trash2, X, Copy, Check, BarChart3 } from 'lucide-react-native';
+import { Plus, Share2, Trash2, X, Copy, Check, BarChart3, Users } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import * as Clipboard from 'expo-clipboard';
 
@@ -28,9 +28,15 @@ export default function PollsScreen() {
   const [showCopiedConfirmation, setShowCopiedConfirmation] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadPolls();
+    // Fetch and store the current user's id for later use
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    })();
   }, []);
 
   const loadPolls = async () => {
@@ -285,38 +291,51 @@ export default function PollsScreen() {
             entering={FadeIn.delay(index * 100)}
             style={styles.pollCard}
           >
-            <View style={styles.pollInfo}>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/poll/[id]', params: { id: item.id } })}>
+            <View style={styles.pollMainRow}>
+              <Pressable
+                style={({ hovered }) => [
+                  styles.pollTitleContainer,
+                  hovered && Platform.OS === 'web' ? styles.pollTitleContainerHover : null,
+                ]}
+                onPress={() => router.push({ pathname: '/poll/[id]', params: { id: item.id } })}
+              >
                 <Text style={[styles.pollTitle, { textDecorationLine: 'underline', color: '#1a2b5f' }]}>{item.title}</Text>
-              </TouchableOpacity>
-              {item.description && (
-                <Text style={styles.pollDescription}>{item.description}</Text>
-              )}
-              <Text style={styles.pollDate}>
-                Created on {new Date(item.created_at).toLocaleDateString()}
-              </Text>
-            </View>
-            <View style={styles.pollActions}>
-              {isCreator && (
+                {item.description && (
+                  <Text style={styles.pollDescription}>{item.description}</Text>
+                )}
+                <Text style={styles.pollDate}>
+                  Created on {new Date(item.created_at).toLocaleDateString()}
+                </Text>
+              </Pressable>
+              <View style={styles.pollActions}>
+                {userId && item.user_id === userId && (
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => setPollToDelete(item)}
+                  >
+                    <Trash2 size={20} color="#e74c3c" />
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => setPollToDelete(item)}
+                  style={styles.localVoteButton}
+                  onPress={() => router.push(`/poll/local/${item.id}`)}
                 >
-                  <Trash2 size={20} color="#e74c3c" />
+                  <Users size={20} color="#10b981" />
+                  <Text style={styles.localVoteButtonText}>Local Vote</Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.shareButton}
-                onPress={() => handleShare(item.id)}
-              >
-                <Share2 size={20} color="#ff9654" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.resultsButton}
-                onPress={() => router.push({ pathname: '/poll/[id]/results', params: { id: item.id } })}
-              >
-                <BarChart3 size={20} color="#4b5563" />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={() => handleShare(item.id)}
+                >
+                  <Share2 size={20} color="#ff9654" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.resultsButton}
+                  onPress={() => router.push({ pathname: '/poll/[id]/results', params: { id: item.id } })}
+                >
+                  <BarChart3 size={20} color="#4b5563" />
+                </TouchableOpacity>
+              </View>
             </View>
           </Animated.View>
         )}
@@ -460,16 +479,28 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
-  pollInfo: {
-    flex: 1,
+  pollMainRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    width: '100%',
+  },
+  pollTitleContainer: {
+    flexBasis: '50%',
+    maxWidth: '50%',
+    minWidth: 0,
+    justifyContent: 'center',
+    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    transitionProperty: Platform.OS === 'web' ? 'background' : undefined,
+    transitionDuration: Platform.OS === 'web' ? '0.2s' : undefined,
+  },
+  pollTitleContainerHover: {
+    backgroundColor: '#f3f4f6', // light highlight color
   },
   pollTitle: {
     fontFamily: 'Poppins-SemiBold',
@@ -489,9 +520,13 @@ const styles = StyleSheet.create({
     color: '#8d8d8d',
   },
   pollActions: {
+    flexBasis: '50%',
+    maxWidth: '50%',
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    justifyContent: 'flex-end',
   },
   deleteButton: {
     padding: 8,
@@ -508,5 +543,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderRadius: 8,
     marginLeft: 4,
+  },
+  localVoteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 8,
+    gap: 4,
+  },
+  localVoteButtonText: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 14,
+    color: '#10b981',
   },
 });

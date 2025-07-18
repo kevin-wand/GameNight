@@ -10,7 +10,7 @@ import { Trophy, Medal, Award, Vote } from 'lucide-react-native';
 
 export default function PollResultsScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id, local } = useLocalSearchParams();
   const [user, setUser] = useState<any>(null);
   const [comments, setComments] = useState<{ voter_name: string; comment_text: string }[]>([]);
 
@@ -108,12 +108,21 @@ export default function PollResultsScreen() {
   };
 
   const navigateToVoting = () => {
-    router.push({ pathname: '/poll/[id]', params: { id: id as string } });
+    if (local === '1') {
+      router.push(`/poll/local/${id}`);
+    } else {
+      router.push({ pathname: '/poll/[id]', params: { id: id as string } });
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        {user && (
+          <TouchableOpacity onPress={() => router.push('/(tabs)/polls')}>
+            <Text style={styles.backLink}>&larr; Back to Polls</Text>
+          </TouchableOpacity>
+        )}
         <Text style={styles.title}>Poll Results</Text>
         <Text style={styles.subtitle}>{pollTitle}</Text>
       </View>
@@ -375,5 +384,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
     fontSize: 14,
     color: '#1a2b5f',
+  },
+  backLink: {
+    color: '#1d4ed8',
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 15,
+    marginBottom: 8,
+    textDecorationLine: 'underline',
+    alignSelf: 'flex-start',
   },
 });
