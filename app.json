@@ -7,6 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "klack",
     "userInterfaceStyle": "automatic",
+    "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.klack.app",

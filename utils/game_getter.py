@@ -30,7 +30,7 @@ PASSWORD = os.environ.get('BGG_PASSWORD')
 
 def get_private_collection():
   session = requests.Session()
-  post = session.post(
+  session.post(
     LOGIN_URL,
     data = json.dumps({'credentials': {'username': USERNAME, 'password': PASSWORD}}),
     headers = {'content-type': 'application/json'},
@@ -43,18 +43,18 @@ def get_private_collection():
   
 def get_zip_url():
   session = requests.Session()
-  post = session.post(
+  session.post(
     LOGIN_URL,
     data = json.dumps({'credentials': {'username': USERNAME, 'password': PASSWORD}}),
-    headers = {'content-type': 'application/json'}
+    headers = {'content-type': 'application/json'},
   )
   response = session.get(BGG_CSV_URL)
   soup = BeautifulSoup(response.text, 'lxml')
   return soup.find(id='maincontent').a['href']
 
 def write_bgg_csv(zip_url):
-  request = requests.get(zip_url)
-  bgg_zipfile = ZipFile(io.BytesIO(request.content))
+  response = requests.get(zip_url)
+  bgg_zipfile = ZipFile(io.BytesIO(response.content))
   bgg_zipfile.extract(BGG_CSV_FILENAME)
 
 def has_taxonomy(game, type, value):
