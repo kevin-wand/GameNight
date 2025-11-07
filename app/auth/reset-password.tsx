@@ -76,7 +76,7 @@ export default function ResetPasswordScreen() {
       // Clear any existing session before sending reset email
       await supabase.auth.signOut();
 
-      const redirectUrl = `${getBaseUrl()}/auth/reset-password-handler`;
+      const redirectUrl = `${getBaseUrl()}/auth/update-password`;
       console.log('Sending reset email with redirect URL:', redirectUrl);
 
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
