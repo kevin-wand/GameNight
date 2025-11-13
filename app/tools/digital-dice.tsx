@@ -2,7 +2,8 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, Modal, Platform, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Dice6, RotateCcw, Plus, Minus, X, Settings } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import ToolsFooter from '@/components/ToolsFooter';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -171,7 +172,7 @@ export default function DigitalDiceScreen() {
 
     return (
       <Animated.View style={[styles.rollingDice]}>
-        <Dice6 size={48} color="#10b981" />
+        <SFSymbolIcon name="dice6" color="#10b981" />
       </Animated.View>
     );
   }, [styles]);
@@ -212,7 +213,7 @@ export default function DigitalDiceScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Close"
               >
-                <X size={20} color="#666666" />
+                <SFSymbolIcon name="x" color="#666666" />
               </TouchableOpacity>
             </View>
 
@@ -292,7 +293,7 @@ export default function DigitalDiceScreen() {
                   entering={ZoomIn.delay(index * 100).duration(300)}
                   style={styles.resultDice}
                 >
-                  <Dice6 size={32} color="#10b981" />
+                  <SFSymbolIcon name="dice6" color="#10b981" />
                   <Text style={styles.resultValue}>{dice.value}</Text>
                 </Animated.View>
               ))}
@@ -311,7 +312,7 @@ export default function DigitalDiceScreen() {
                 accessibilityLabel="Roll dice again"
                 accessibilityRole="button"
               >
-                <RotateCcw size={20} color="#ffffff" />
+                <SFSymbolIcon name="rotateccw" color="#ffffff" />
                 <Text style={styles.rollAgainText}>Roll Again</Text>
               </TouchableOpacity>
 
@@ -397,7 +398,7 @@ export default function DigitalDiceScreen() {
                 accessibilityLabel="Decrease number of dice"
                 accessibilityRole="button"
               >
-                <Minus size={20} color={numberOfDice <= 1 ? "#cccccc" : "#10b981"} />
+                <SFSymbolIcon name="minus" />
               </TouchableOpacity>
 
               <View style={styles.valueContainer}>
@@ -422,7 +423,7 @@ export default function DigitalDiceScreen() {
             <View style={styles.previewContainer}>
               {Array.from({ length: numberOfDice }, (_, index) => (
                 <View key={index} style={styles.previewDice}>
-                  <Dice6 size={32} color="#10b981" />
+                  <SFSymbolIcon name="dice6" color="#10b981" />
                 </View>
               ))}
             </View>
@@ -439,7 +440,7 @@ export default function DigitalDiceScreen() {
             accessibilityLabel={isRolling ? "Rolling dice" : "Roll dice"}
             accessibilityRole="button"
           >
-            <Dice6 size={28} color="#ffffff" />
+            <SFSymbolIcon name="dice6" color="#ffffff" />
             <Text style={styles.rollButtonText}>
               {isRolling ? 'Rolling...' : 'Roll Dice'}
             </Text>
@@ -453,7 +454,7 @@ export default function DigitalDiceScreen() {
               accessibilityLabel="Open settings"
               accessibilityRole="button"
             >
-              <Settings size={20} color="#666666" />
+              <SFSymbolIcon name="settings" color="#666666" />
               <Text style={styles.settingsButtonText}>Settings</Text>
             </TouchableOpacity>
           )}
@@ -476,7 +477,7 @@ export default function DigitalDiceScreen() {
                   style={styles.modalCloseButton}
                   onPress={() => setShowSettings(false)}
                 >
-                  <X size={20} color="#666666" />
+                  <SFSymbolIcon name="x" color="#666666" />
                 </TouchableOpacity>
               </View>
 

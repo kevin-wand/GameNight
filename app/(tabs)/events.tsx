@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList, TextInput, Platform, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Plus, Share2, Trash2, X, Copy, Check, BarChart3, Edit, Calendar } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import * as Clipboard from 'expo-clipboard';
 
 import { supabase } from '@/services/supabase';
@@ -417,7 +418,7 @@ export default function EventsScreen() {
             style={styles.createButton}
             onPress={() => setCreateModalVisible(true)}
           >
-            <Plus size={16} color="#ffffff" />
+            <SFSymbolIcon name="plus" color="#ffffff" />
             <Text style={styles.createButtonText}>Create Event</Text>
           </TouchableOpacity>
           <View style={styles.tabsWrapper}>
@@ -478,7 +479,7 @@ export default function EventsScreen() {
               style={styles.closeShareLinkButton}
               hitSlop={touchTargets.small}
             >
-              <X size={12} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 
@@ -509,9 +510,9 @@ export default function EventsScreen() {
               }}
             >
               {showCopiedConfirmation ? (
-                <Check size={16} color={colors.success} />
+                <SFSymbolIcon name="check" />
               ) : (
-                <Copy size={16} color={colors.accent} />
+                <SFSymbolIcon name="copy" />
               )}
             </TouchableOpacity>
           </View>
@@ -548,7 +549,7 @@ export default function EventsScreen() {
                     </Text>
                   </View>
                   <View style={styles.eventDateContainer}>
-                    <Calendar size={16} color={colors.textMuted} style={styles.eventDateIcon} />
+                    <SFSymbolIcon name="calendar" />
                     <Text style={styles.eventDateText} numberOfLines={1}>
                       {new Date(item.created_at).toLocaleDateString()}
                     </Text>
@@ -571,7 +572,7 @@ export default function EventsScreen() {
                       accessibilityHint="Permanently deletes this event"
                       onPress={() => setEventToDelete(item)}
                     >
-                      <X size={12} color={colors.error} />
+                      <SFSymbolIcon name="x" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -582,7 +583,7 @@ export default function EventsScreen() {
                   accessibilityLabel={`Share event ${item.title}`}
                   accessibilityRole="button"
                   accessibilityHint="Shares the event link">
-                  <Share2 size={18} color={colors.accent} style={{ marginRight: 8 }} />
+                  <SFSymbolIcon name="share2" />
                   <Text style={styles.shareLinkButtonTextDesktop}>Share</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -592,7 +593,7 @@ export default function EventsScreen() {
                   accessibilityHint="Shows voting results for this event"
                   onPress={() => setOpenResultsEventId(isDropdownOpen ? null : item.id)}
                 >
-                  <BarChart3 size={18} color={colors.primary} style={{ marginRight: 8 }} />
+                  <SFSymbolIcon name="barchart3" />
                   <Text style={styles.resultsButtonTextDesktop}>
                     Results
                   </Text>

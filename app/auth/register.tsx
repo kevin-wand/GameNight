@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/services/supabase';
@@ -102,7 +103,7 @@ export default function RegisterScreen() {
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Email</Text>
                 <View style={styles.inputWrapper}>
-                  {/* <Mail color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
+                  {/* <SFSymbolIcon name="mail" /> */}
                   <TextInput
                     style={styles.input}
                     value={email}

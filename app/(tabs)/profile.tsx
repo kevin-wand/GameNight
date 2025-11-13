@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { LogOut, CreditCard as Edit2, ExternalLink, Mail, Edit3 } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -200,7 +201,7 @@ export default function ProfileScreen() {
               onPress={() => Linking.openURL('mailto:klackapp@gmail.com')}
               style={styles.iconButton}
             >
-              <Mail size={28} color={colors.textMuted} />
+              <SFSymbolIcon name="mail" />
             </TouchableOpacity> */}
             <TouchableOpacity
               accessibilityLabel="Open Discord server"
@@ -227,7 +228,7 @@ export default function ProfileScreen() {
             onPress={handleLogout}
             disabled={loading}
           >
-            <LogOut size={20} color={colors.error} />
+            <SFSymbolIcon name="logout" />
             <Text style={[styles.actionButtonText, styles.logoutButtonText]}>
               {loading ? 'Logging out...' : 'Log Out'}
             </Text>

@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Check, X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { supabase } from '@/services/supabase';
 import { ThumbnailModal } from './ThumbnailModal';
 import { useTheme } from '@/hooks/useTheme';
@@ -432,7 +433,7 @@ export const AddResultsModal: React.FC<AddResultsModalProps> = ({
           accessibilityHint="Returns to the image analysis step"
           hitSlop={touchTargets.sizeTwenty}
         >
-          <ArrowLeft size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="arrow-left" />
         </TouchableOpacity>
         <Text style={styles.title}>Analysis Results</Text>
         <TouchableOpacity
@@ -446,7 +447,7 @@ export const AddResultsModal: React.FC<AddResultsModalProps> = ({
           accessibilityHint="Closes the analysis results modal"
           hitSlop={touchTargets.sizeTwenty}
         >
-          <X size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="x" />
         </TouchableOpacity>
       </View>
 
@@ -531,7 +532,7 @@ export const AddResultsModal: React.FC<AddResultsModalProps> = ({
                             accessibilityHint={isInCollection ? 'Game already in collection' : 'Toggle game selection'}
                             hitSlop={touchTargets.standard}
                           >
-                            {isSelected && <Check size={12} color="#fff" />}
+                            {isSelected && <SFSymbolIcon name="check" color="#fff" />}
                           </TouchableOpacity>
 
                           {/* Thumbnail */}

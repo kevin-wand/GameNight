@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -37,7 +38,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry }) => {
         accessibilityHint="Attempts to reload the content"
         hitSlop={touchTargets.small}
       >
-        <RefreshCw size={18} color="#ffffff" />
+        <SFSymbolIcon name="refresh" color="#ffffff" />
         <Text style={styles.retryText}>Retry</Text>
       </TouchableOpacity>
 

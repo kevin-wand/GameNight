@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Image, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
@@ -51,7 +52,7 @@ export const ThumbnailModal: React.FC<ThumbnailModalProps> = ({
               accessibilityHint="Closes the full-size image view"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color="#ffffff" />
+              <SFSymbolIcon name="x" color="#ffffff" />
             </TouchableOpacity>
           </View>
           <Image

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Share2, Edit, Trash2, MapPin, Clock, Calendar } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { format } from 'date-fns';
 import { TruncatedText } from './TruncatedText';
 
@@ -103,12 +104,12 @@ export function EventCard({
 
       <View style={styles.details}>
         <View style={styles.detailRow}>
-          <Calendar size={16} color="#666666" />
+          <SFSymbolIcon name="calendar" color="#666666" />
           <Text style={styles.detailText}>{getDateRange()}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <MapPin size={16} color="#666666" />
+          <SFSymbolIcon name="mappin" color="#666666" />
           <TruncatedText
             text={getDisplayLocation()}
             maxLength={35}
@@ -118,7 +119,7 @@ export function EventCard({
         </View>
 
         <View style={styles.detailRow}>
-          <Clock size={16} color="#666666" />
+          <SFSymbolIcon name="clock" color="#666666" />
           <Text style={styles.detailText}>{getDisplayTime()}</Text>
         </View>
       </View>
@@ -133,7 +134,7 @@ export function EventCard({
             style={styles.actionButton}
             onPress={() => onShare(event.id)}
           >
-            <Share2 size={16} color="#ff9654" />
+            <SFSymbolIcon name="share2" color="#ff9654" />
             <Text style={styles.actionButtonText}>Share</Text>
           </TouchableOpacity>
 
@@ -143,7 +144,7 @@ export function EventCard({
                 style={styles.actionButton}
                 onPress={() => onEdit(event)}
               >
-                <Edit size={16} color="#4b5563" />
+                <SFSymbolIcon name="edit" color="#4b5563" />
                 <Text style={styles.actionButtonText}>Edit</Text>
               </TouchableOpacity>
 
@@ -151,7 +152,7 @@ export function EventCard({
                 style={styles.actionButton}
                 onPress={() => onDelete(event)}
               >
-                <Trash2 size={16} color="#e74c3c" />
+                <SFSymbolIcon name="trash2" color="#e74c3c" />
                 <Text style={styles.actionButtonText}>Delete</Text>
               </TouchableOpacity>
             </>

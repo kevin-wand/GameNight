@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Shuffle, Dice6, Trophy } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { useMemo } from 'react';
+import SFSymbolIcon, { SFSymbolIconProps } from '@/components/SFSymbolIcon';
 
 export default function ToolsScreen() {
   const insets = useSafeAreaInsets();
@@ -21,7 +21,7 @@ export default function ToolsScreen() {
       id: 'first-player',
       title: 'First Player Select',
       description: 'Randomly select who goes first',
-      icon: Shuffle,
+      icon: "shuffle",
       color: colors.warning,
       backgroundColor: colors.tints.warningBgDark,
       onPress: () => router.navigate('/tools/first-player'),
@@ -30,7 +30,7 @@ export default function ToolsScreen() {
       id: 'digital-dice',
       title: 'Digital Dice',
       description: 'Roll virtual dice for your games',
-      icon: Dice6,
+      icon: "dice6",
       color: colors.success,
       backgroundColor: colors.tints.success,
       onPress: () => router.navigate('/tools/digital-dice'),
@@ -39,7 +39,7 @@ export default function ToolsScreen() {
       id: 'score-tracker',
       title: 'Score Tracker',
       description: 'Keep track of player scores',
-      icon: Trophy,
+      icon: "trophy",
       color: colors.accent,
       backgroundColor: colors.tints.accent,
       onPress: () => router.navigate('/tools/score-tracker'),
@@ -72,8 +72,6 @@ export default function ToolsScreen() {
       {/* Tools Content Section */}
       <View style={[styles.toolsSection, { paddingBottom: 80 + safeAreaBottom }]}>
         {tools.map((tool, index) => {
-          const IconComponent = tool.icon;
-
           return (
             <Animated.View
               key={tool.id}
@@ -88,7 +86,7 @@ export default function ToolsScreen() {
                 accessibilityHint={`Opens the ${tool.title} tool`}
               >
                 <View style={styles.toolIconContainer}>
-                  <IconComponent size={24} color={tool.color} />
+                  <SFSymbolIcon name={tool.icon as SFSymbolIconProps['name']} size={24} color={tool.color} />
                 </View>
 
                 <View style={styles.toolContent}>

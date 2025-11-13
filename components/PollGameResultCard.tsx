@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { VOTING_OPTIONS, ICON_MAP, SCORE_TO_VOTE_TYPE, getVoteTypeKeyFromScore, getIconColor, getVoteBgColor } from './votingOptions';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -106,9 +107,9 @@ export function GameResultCard({ game }: { game: PollGame }) {
               {showVoters ? 'Hide Voters' : 'Show Voters'}
             </Text>
             {showVoters ? (
-              <ChevronUp size={16} color={colors.accent} />
+              <SFSymbolIcon name="chevron-up" />
             ) : (
-              <ChevronDown size={16} color={colors.accent} />
+              <SFSymbolIcon name="chevron-down" />
             )}
           </TouchableOpacity>
           {showVoters && (

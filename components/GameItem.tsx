@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator } from 'react-native';
-import { Users, Clock, X, ChevronDown, Calendar, Star, Baby, Brain, ChevronRight, Plus, Minus } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { supabase } from '@/services/supabase';
 import { decode } from 'html-entities';
@@ -170,9 +171,9 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
           {updatingExpansion === exp.id ? (
             <ActivityIndicator size="small" color={colors.textMuted} />
           ) : exp.is_owned ? (
-            <Minus size={12} color={colors.error} />
+            <SFSymbolIcon name="minus" />
           ) : (
-            <Plus size={12} color={colors.success} />
+            <SFSymbolIcon name="plus" />
           )}
         </TouchableOpacity>
         <Text
@@ -230,7 +231,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
         accessibilityRole="button"
         accessibilityHint="Remove this game from your collection"
       >
-        <X size={12} color={colors.error} />
+        <SFSymbolIcon name="x" />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -256,7 +257,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
 
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
-              <Users size={16} color={colors.textMuted} />
+              <SFSymbolIcon name="users" />
               <Text style={styles.infoText}>
                 {playerCountText}
               </Text>
@@ -265,7 +266,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
 
           <View style={styles.infoRowWithMargin}>
             <View style={styles.infoItem}>
-              <Clock size={16} color={colors.textMuted} />
+              <SFSymbolIcon name="clock" />
               <Text style={styles.infoText}>
                 {getPlayTimeDisplay(game)}
               </Text>
@@ -276,9 +277,9 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
         <View style={styles.chevronContainer}>
           <Text style={styles.infoText}>Info</Text>
           {isExpanded ? (
-            <ChevronDown size={24} color={colors.accent} />
+            <SFSymbolIcon name="chevron-down" />
           ) : (
-            <ChevronRight size={24} color={colors.accent} />
+            <SFSymbolIcon name="chevron-right" />
           )}
         </View>
       </TouchableOpacity>
@@ -288,7 +289,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Calendar size={16} color={colors.accent} />
+                <SFSymbolIcon name="calendar" />
                 <Text style={styles.detailLabel}>Publication Year</Text>
                 <Text style={styles.detailValue}>
                   {game.yearPublished ? (game.yearPublished >= 0 ? game.yearPublished : -game.yearPublished + ' BCE') : 'N/A'}
@@ -296,7 +297,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
               </View>
 
               <View style={styles.detailItem}>
-                <Brain size={16} color={colors.primary} />
+                <SFSymbolIcon name="brain" />
                 <Text style={styles.detailLabel}>Weight</Text>
                 <Text style={styles.detailValue}>
                   {game.complexity ?
@@ -308,7 +309,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
 
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Star size={16} color={colors.success} />
+                <SFSymbolIcon name="star" />
                 <Text style={styles.detailLabel}>Community Score</Text>
                 <Text style={styles.detailValue}>
                   {game.average ? game.average.toFixed(1) : 'N/A'}
@@ -316,7 +317,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onDelete, onExpansionU
               </View>
 
               <View style={styles.detailItem}>
-                <Baby size={16} color={colors.error} />
+                <SFSymbolIcon name="baby" />
                 <Text style={styles.detailLabel}>Minimum Age</Text>
                 <Text style={styles.detailValue}>
                   {game.minAge ? `${game.minAge}` : 'N/A'}

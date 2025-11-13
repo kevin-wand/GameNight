@@ -8,7 +8,8 @@ import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { format, isAfter, addMonths, subMonths, startOfMonth, endOfMonth, isSameMonth, isSameDay, isBefore, startOfDay, min, max } from 'date-fns';
 import { DateReviewModal } from './DateReviewModal';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { supabase } from '@/services/supabase';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -285,7 +286,7 @@ export default function CreateEventModal({ visible, onClose, onSuccess, pollId }
               accessibilityHint="Closes the create event modal"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 
@@ -308,7 +309,7 @@ export default function CreateEventModal({ visible, onClose, onSuccess, pollId }
                   accessibilityHint="Navigates to the previous month"
                   hitSlop={touchTargets.small}
                 >
-                  <ChevronLeft size={20} color={colors.textMuted} />
+                  <SFSymbolIcon name="chevron-left" />
                 </TouchableOpacity>
                 <Text style={styles.monthText} accessibilityRole="header">
                   {format(currentMonth, 'MMMM yyyy')}
@@ -320,7 +321,7 @@ export default function CreateEventModal({ visible, onClose, onSuccess, pollId }
                   accessibilityHint="Navigates to the next month"
                   hitSlop={touchTargets.small}
                 >
-                  <ChevronRight size={20} color={colors.textMuted} />
+                  <SFSymbolIcon name="chevron-right" />
                 </TouchableOpacity>
               </View>
 

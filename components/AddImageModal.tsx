@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { ArrowLeft, Camera, Upload, X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
@@ -274,7 +275,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
           accessibilityHint="Returns to the previous step"
           hitSlop={touchTargets.sizeTwenty}
         >
-          <ArrowLeft size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="arrow-left" />
         </TouchableOpacity>
         <Text style={styles.title}>Add Games With A Photo</Text>
         <TouchableOpacity
@@ -288,7 +289,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
           accessibilityHint="Closes the photo analysis modal"
           hitSlop={touchTargets.sizeTwenty}
         >
-          <X size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="x" />
         </TouchableOpacity>
       </View>
 
@@ -352,7 +353,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
                     accessibilityHint="Opens camera to take a photo of board games"
                     hitSlop={touchTargets.tiny}
                   >
-                    <Camera size={24} color="#fff" />
+                    <SFSymbolIcon name="camera" color="#fff" />
                     <Text style={styles.uploadButtonText}>Take Photo</Text>
                   </TouchableOpacity>
                 )}
@@ -368,7 +369,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
                   accessibilityHint="Opens image library to select a photo"
                   hitSlop={touchTargets.tiny}
                 >
-                  <Upload size={24} color="#fff" />
+                  <SFSymbolIcon name="upload" color="#fff" />
                   <Text style={styles.uploadButtonText}>
                     {!isDesktop ? 'Add Photo' : 'Upload Image'}
                   </Text>
@@ -406,7 +407,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <>
-                  <Camera size={20} color="#fff" />
+                  <SFSymbolIcon name="camera" color="#fff" />
                   <Text style={styles.analyzeButtonText}>Analyze Image</Text>
                 </>
               )}
@@ -471,7 +472,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
             accessibilityHint="Closes the full size image view"
             hitSlop={touchTargets.tiny}
           >
-            <X size={24} color="#fff" />
+            <SFSymbolIcon name="x" color="#fff" />
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -509,7 +510,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
               accessibilityHint="Closes the instructions modal"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
           <View style={styles.instructionsContent}>

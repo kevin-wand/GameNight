@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { Meh, Smile, Laugh, HelpCircle, ThumbsDown } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 
 export const VOTING_OPTIONS = [
   { value: 'voteType1', icon: 'voteType1Icon', label: 'Excited', score: 3 },
@@ -14,11 +15,11 @@ export type VoteType = typeof VOTING_OPTIONS[number]['value'];
 export type IconName = typeof VOTING_OPTIONS[number]['icon'];
 
 export const ICON_MAP: Record<IconName, React.ComponentType<any> | string> = {
-  voteType1Icon: Laugh,
-  voteType2Icon: Smile,
-  voteType3Icon: Meh,
-  // voteType4Icon: HelpCircle,
-  voteType5Icon: ThumbsDown,
+  voteType1Icon: "laugh",
+  voteType2Icon: "smile",
+  voteType3Icon: "meh",
+  // voteType4Icon: "helpcircle",
+  voteType5Icon: "thumbsdown",
 };
 
 export const VOTE_TYPE_TO_SCORE = Object.fromEntries(VOTING_OPTIONS.map(opt => [opt.value, opt.score]));

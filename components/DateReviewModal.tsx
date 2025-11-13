@@ -2,8 +2,9 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Switch, Modal } from 'react-native';
 import { format } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
 
-import { SquarePen, X } from 'lucide-react-native';
+;
 import { CreateEventDetails } from './CreateEventDetails';
 import { TimeDropdown } from './DropdownEventTime';
 import { useTheme } from '@/hooks/useTheme';
@@ -257,7 +258,7 @@ const EventDetailsButton: React.FC<{
           <View style={[styles.eventDetailsButtonIndicator, { opacity: hasManualDetails ? 1 : 0, marginRight: 8 }]}>
             <Text style={styles.eventDetailsButtonIndicatorText}>✓</Text>
           </View>
-          <SquarePen size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="square-pen" />
         </View>
       </View>
     </TouchableOpacity>
@@ -700,7 +701,7 @@ export function DateReviewModal({
               accessibilityHint="Closes the date review modal"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 

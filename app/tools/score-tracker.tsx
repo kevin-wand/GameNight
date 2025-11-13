@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, Minus, Trophy, Users, RotateCcw, X, Pen, Check } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -204,7 +205,7 @@ export default function ScoreTrackerScreen() {
                 accessibilityLabel="Add player"
                 accessibilityRole="button"
               >
-                <Plus color={colors.card} size={20} />
+                <SFSymbolIcon name="plus" />
               </TouchableOpacity>
             </View>
 
@@ -233,7 +234,7 @@ export default function ScoreTrackerScreen() {
                         accessibilityLabel="Save player name"
                         accessibilityRole="button"
                       >
-                        <Check size={16} color="#10b981" />
+                        <SFSymbolIcon name="check" color="#10b981" />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.cancelButton}
@@ -242,7 +243,7 @@ export default function ScoreTrackerScreen() {
                         accessibilityLabel="Cancel editing"
                         accessibilityRole="button"
                       >
-                        <X size={16} color="#e74c3c" />
+                        <SFSymbolIcon name="x" color="#e74c3c" />
                       </TouchableOpacity>
                     </View>
                   ) : (
@@ -258,7 +259,7 @@ export default function ScoreTrackerScreen() {
                           accessibilityLabel={`Edit ${player.name}`}
                           accessibilityRole="button"
                         >
-                          <Pen size={16} color="#ff9654" />
+                          <SFSymbolIcon name="pen" color="#ff9654" />
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.removeButton}
@@ -267,7 +268,7 @@ export default function ScoreTrackerScreen() {
                           accessibilityLabel={`Remove ${player.name}`}
                           accessibilityRole="button"
                         >
-                          <X size={16} color="#e74c3c" />
+                          <SFSymbolIcon name="x" color="#e74c3c" />
                         </TouchableOpacity>
                       </View>
                     </>
@@ -290,7 +291,7 @@ export default function ScoreTrackerScreen() {
               accessibilityLabel="Start game"
               accessibilityRole="button"
             >
-              <Trophy size={24} color={colors.card} />
+              <SFSymbolIcon name="trophy" />
               <Text style={styles.startButtonText}>Start Game</Text>
             </TouchableOpacity>
           )}
@@ -519,7 +520,7 @@ export default function ScoreTrackerScreen() {
         accessibilityLabel="Start new game"
         accessibilityRole="button"
       >
-        <RotateCcw size={24} color={colors.card} />
+        <SFSymbolIcon name="rotateccw" />
         <Text style={styles.newGameButtonText}>New Game</Text>
       </TouchableOpacity>
 

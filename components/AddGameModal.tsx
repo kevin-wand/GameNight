@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Camera, RefreshCw, Search } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { AddImageModal } from './AddImageModal';
@@ -211,7 +212,7 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
           accessibilityHint="Closes the add game modal"
           hitSlop={touchTargets.sizeTwenty}
         >
-          <X size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="x" />
         </TouchableOpacity>
       </View>
 
@@ -246,7 +247,7 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
             accessibilityHint="Opens camera to take a photo of board games"
             hitSlop={touchTargets.standard}
           >
-            <Camera size={20} color="#fff" />
+            <SFSymbolIcon name="camera" color="#fff" />
             <Text style={styles.analyzeButtonText}>Add Games With A Photo</Text>
           </TouchableOpacity>
         </View>
@@ -262,7 +263,7 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
           accessibilityHint="Opens search modal to find and add games"
           hitSlop={touchTargets.small}
         >
-          <Search size={16} color="#fff" />
+          <SFSymbolIcon name="search" color="#fff" />
           <Text style={styles.searchButtonText}>Search for Games</Text>
         </TouchableOpacity>
 
@@ -277,7 +278,7 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
           accessibilityHint="Opens modal to sync your BoardGameGeek collection"
           hitSlop={touchTargets.small}
         >
-          <RefreshCw size={16} color="#fff" />
+          <SFSymbolIcon name="refresh" color="#fff" />
           <Text style={styles.syncButtonText}>Import from BGG</Text>
         </TouchableOpacity>
       </View>
@@ -318,7 +319,7 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
             accessibilityHint="Closes the full size image view"
             hitSlop={touchTargets.sizeTwenty}
           >
-            <X size={20} color="#ffffff" />
+            <SFSymbolIcon name="x" color="#ffffff" />
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>

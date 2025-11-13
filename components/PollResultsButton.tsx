@@ -4,7 +4,8 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useMemo } from 'react';
-import { BarChart3 } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 
 interface PollResultsButtonProps {
   onPress: () => void;
@@ -26,7 +27,7 @@ export function PollResultsButton({ onPress }: PollResultsButtonProps) {
       accessibilityRole="button"
       accessibilityHint="Shows the current voting results for this poll"
     >
-      <BarChart3 size={20} color={colors.card} />
+      <SFSymbolIcon name="barchart3" />
       <Text style={styles.buttonText}>View Results</Text>
     </TouchableOpacity>
   );

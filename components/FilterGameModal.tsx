@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TouchableWithoutFeedback, FlatList } from 'react-native';
-import { X, ChevronDown, Users, Baby, Brain, Clock, GamepadIcon } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { Game } from '@/types/game';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -77,7 +78,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
         >
           {displayText}
         </Text>
-        <ChevronDown size={16} color={colors.textMuted} />
+        <SFSymbolIcon name="chevron-down" />
       </TouchableOpacity>
 
       <Modal
@@ -126,7 +127,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
                 accessibilityLabel="Close"
                 hitSlop={touchTargets.small}
               >
-                <X size={20} color={colors.textMuted} />
+                <SFSymbolIcon name="x" />
               </TouchableOpacity>
             </View>
 
@@ -311,7 +312,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         >
           {displayText}
         </Text>
-        <ChevronDown size={16} color={colors.textMuted} />
+        <SFSymbolIcon name="chevron-down" />
       </TouchableOpacity>
 
       <Modal
@@ -360,7 +361,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                 accessibilityLabel="Close"
                 hitSlop={touchTargets.small}
               >
-                <X size={20} color={colors.textMuted} />
+                <SFSymbolIcon name="x" />
               </TouchableOpacity>
             </View>
 
@@ -609,7 +610,7 @@ export const FilterGameModal: React.FC<FilterGameModalProps> = ({
           accessibilityHint="Closes the filter modal"
           hitSlop={touchTargets.small}
         >
-          <X size={16} color={colors.textMuted} />
+          <SFSymbolIcon name="x" />
         </TouchableOpacity>
       </View>
 
@@ -626,7 +627,7 @@ export const FilterGameModal: React.FC<FilterGameModalProps> = ({
         {/* Player Count */}
         <View style={styles.filterSection}>
           <View style={styles.categoryHeader}>
-            <Users size={20} color={colors.text} />
+            <SFSymbolIcon name="users" />
             <Text style={styles.categoryLabel}>Player Count</Text>
           </View>
           <View style={styles.dropdownRow}>
@@ -662,7 +663,7 @@ export const FilterGameModal: React.FC<FilterGameModalProps> = ({
         {/* Recommended Age */}
         <View style={styles.filterSection}>
           <View style={styles.categoryHeader}>
-            <Baby size={20} color={colors.text} />
+            <SFSymbolIcon name="baby" />
             <Text style={styles.categoryLabel}>Recommended Age</Text>
           </View>
           <View style={styles.dropdownRow}>
@@ -698,7 +699,7 @@ export const FilterGameModal: React.FC<FilterGameModalProps> = ({
         {/* Complexity */}
         <View style={styles.filterSection}>
           <View style={styles.categoryHeader}>
-            <Brain size={20} color={colors.text} />
+            <SFSymbolIcon name="brain" />
             <Text style={styles.categoryLabel}>Complexity</Text>
           </View>
           <View style={styles.dropdownRow}>
@@ -734,7 +735,7 @@ export const FilterGameModal: React.FC<FilterGameModalProps> = ({
         {/* Length of Game */}
         <View style={styles.filterSection}>
           <View style={styles.categoryHeader}>
-            <Clock size={20} color={colors.text} />
+            <SFSymbolIcon name="clock" />
             <Text style={styles.categoryLabel}>Length of Game</Text>
           </View>
           <View style={styles.dropdownRow}>

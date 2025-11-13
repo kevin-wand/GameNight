@@ -3,8 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Library, Vote, Calendar, User, Wrench } from 'lucide-react-native';
-
+import SFSymbolIcon, { SFSymbolIconProps } from '@/components/SFSymbolIcon';
 interface ToolsFooterProps {
   currentScreen?: string;
 }
@@ -21,31 +20,31 @@ export default function ToolsFooter({ currentScreen }: ToolsFooterProps) {
     {
       id: 'collections',
       label: 'Collection',
-      icon: Library,
+      icon: "library",
       route: '/(tabs)/collection',
     },
     {
       id: 'tools',
       label: 'Tools',
-      icon: Wrench,
+      icon: "wrench",
       route: '/(tabs)/',
     },
     {
       id: 'events',
       label: 'Events',
-      icon: Calendar,
+      icon: "calendar",
       route: '/(tabs)/events',
     },
     {
       id: 'polls',
       label: 'Organize',
-      icon: Vote,
+      icon: "vote",
       route: '/(tabs)/polls',
     },
     {
       id: 'profile',
       label: 'Profile',
-      icon: User,
+      icon: "user",
       route: '/(tabs)/profile',
     },
   ], []);
@@ -55,7 +54,6 @@ export default function ToolsFooter({ currentScreen }: ToolsFooterProps) {
   return (
     <View style={styles.footer}>
       {navigationItems.map((item) => {
-        const IconComponent = item.icon;
         const isActive = currentScreen === item.id;
 
         return (
@@ -72,10 +70,7 @@ export default function ToolsFooter({ currentScreen }: ToolsFooterProps) {
             accessibilityHint={`Opens the ${item.label} screen`}
           >
             <View style={styles.navIcon}>
-              <IconComponent
-                size={25}
-                color={isActive ? colors.accent : colors.textMuted}
-              />
+              <SFSymbolIcon name={item.icon as SFSymbolIconProps['name']} size={25} color={isActive ? colors.accent : colors.textMuted} />
             </View>
             <Text
               style={[

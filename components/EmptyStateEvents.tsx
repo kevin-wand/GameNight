@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Plus, Search, CheckSquare, Share2, Calendar } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 
@@ -22,15 +23,15 @@ export const EmptyStateEvents: React.FC<EmptyStateEventsProps> = ({ onCreate }) 
 
       <View style={styles.stepsContainer}>
         <View style={styles.stepRow}>
-          <Calendar size={20} color={colors.accent} style={styles.stepIcon} />
+          <SFSymbolIcon name="calendar" />
           <Text style={styles.stepText}><Text style={styles.stepBoldText}>Pick Times</Text> – Select the dates/times that work for you</Text>
         </View>
         <View style={styles.stepRow}>
-          <CheckSquare size={20} color={colors.accent} style={styles.stepIcon} />
+          <SFSymbolIcon name="check-square" />
           <Text style={styles.stepText}><Text style={styles.stepBoldText}>Provide Info</Text> – Let them know the location and relevant details of the game night</Text>
         </View>
         <View style={styles.stepRow}>
-          <Share2 size={20} color={colors.accent} style={styles.stepIcon} />
+          <SFSymbolIcon name="share2" />
           <Text style={styles.stepText}><Text style={styles.stepBoldText}>Share</Text> – Send the poll via link</Text>
         </View>
       </View>
@@ -45,7 +46,7 @@ export const EmptyStateEvents: React.FC<EmptyStateEventsProps> = ({ onCreate }) 
         accessibilityRole="button"
         accessibilityHint="Opens the poll creation modal"
       >
-        <Plus size={20} color={colors.card} style={{ marginRight: 8 }} />
+        <SFSymbolIcon name="plus" />
         <Text style={styles.buttonText}>Create Event Poll</Text>
       </TouchableOpacity>
       <Text style={styles.note}>

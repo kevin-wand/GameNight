@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
-import { X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 
 // ============================================================================
 // TIME OPTIONS
@@ -153,7 +154,7 @@ export const TimeDropdown: React.FC<TimeDropdownProps> = ({
                 accessibilityLabel="Close"
                 hitSlop={touchTargets.small}
               >
-                <X size={20} color={colors.textMuted} />
+                <SFSymbolIcon name="x" />
               </TouchableOpacity>
             </View>
 

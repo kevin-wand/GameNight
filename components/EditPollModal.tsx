@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TextStyle, ViewStyle, TouchableOpacity, ScrollView, TextInput, Alert, Image, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Plus, Check, Users, ChevronDown, ChevronUp, Clock, Brain, Users as Users2, Baby, AlertTriangle, SquarePen } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { supabase } from '@/services/supabase';
 import Toast from 'react-native-toast-message';
 import { decode } from 'html-entities';
@@ -376,14 +377,14 @@ export const EditPollModal: React.FC<EditPollModalProps> = ({
                 accessibilityHint="Closes the edit poll modal"
                 hitSlop={touchTargets.small}
               >
-                <X size={16} color={colors.textMuted} />
+                <SFSymbolIcon name="x" />
               </TouchableOpacity>
             </View>
 
             {/* Warning about existing votes */}
             {hasExistingVotes && !warningDismissed && (
               <View style={styles.warningHeader} accessibilityRole="alert">
-                <AlertTriangle size={20} color={colors.warning} />
+                <SFSymbolIcon name="alert-triangle" />
                 <Text style={styles.warningHeaderText}>
                   This poll already has {voterCount} voter{voterCount !== 1 ? 's' : ''}
                 </Text>
@@ -394,7 +395,7 @@ export const EditPollModal: React.FC<EditPollModalProps> = ({
                   accessibilityHint="Dismisses the existing votes warning"
                   hitSlop={touchTargets.small}
                 >
-                  <X size={16} color={colors.textMuted} />
+                  <SFSymbolIcon name="x" />
                 </TouchableOpacity>
               </View>
             )}
@@ -469,7 +470,7 @@ export const EditPollModal: React.FC<EditPollModalProps> = ({
                       <View style={[styles.descriptionButtonIndicator, { opacity: (dynamicPollDescription || isTitleManuallyChanged) ? 1 : 0 }]}>
                         <Text style={styles.descriptionButtonIndicatorText}>✓</Text>
                       </View>
-                      <SquarePen size={20} color={colors.textMuted} />
+                      <SFSymbolIcon name="square-pen" />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -515,7 +516,7 @@ export const EditPollModal: React.FC<EditPollModalProps> = ({
                           isSelected && styles.checkboxSelected
                         ]}>
                           {isSelected && (
-                            <Check size={16} color="#ffffff" />
+                            <SFSymbolIcon name="check" color="#ffffff" />
                           )}
                         </View>
                       </TouchableOpacity>
@@ -539,7 +540,7 @@ export const EditPollModal: React.FC<EditPollModalProps> = ({
                 accessibilityHint="Opens the add games modal to select additional games"
                 hitSlop={touchTargets.small}
               >
-                <Plus size={20} color={colors.primary} />
+                <SFSymbolIcon name="plus" />
                 <Text style={styles.addGamesButtonText}>
                   {originalPollGames.length === 0 ? 'Add Games to Poll' : 'Add More Games'}
                 </Text>

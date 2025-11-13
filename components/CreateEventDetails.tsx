@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
-import { X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useDeviceType } from '@/hooks/useDeviceType';
@@ -69,7 +70,7 @@ export const CreateEventDetails: React.FC<CreateEventDetailsProps> = ({
               accessibilityHint="Closes the event details editor"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 
@@ -96,7 +97,7 @@ export const CreateEventDetails: React.FC<CreateEventDetailsProps> = ({
                     accessibilityHint="Clears the event name field"
                     hitSlop={touchTargets.small}
                   >
-                    <X size={16} color={colors.textMuted} />
+                    <SFSymbolIcon name="x" />
                   </TouchableOpacity>
                 ) : null}
               </View>

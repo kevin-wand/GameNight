@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Image, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, Shuffle, X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -153,7 +154,7 @@ export default function FirstPlayerScreen() {
             accessibilityLabel="Add player"
             accessibilityRole="button"
           >
-            <Plus color={colors.card} size={20} />
+            <SFSymbolIcon name="plus" />
           </TouchableOpacity>
         </View>
 
@@ -177,7 +178,7 @@ export default function FirstPlayerScreen() {
                 accessibilityLabel={`Remove ${item}`}
                 accessibilityRole="button"
               >
-                <X size={16} color={colors.error} />
+                <SFSymbolIcon name="x" />
               </TouchableOpacity>
             </Animated.View>
           )}
@@ -196,7 +197,7 @@ export default function FirstPlayerScreen() {
             accessibilityLabel="Select a random player"
             accessibilityRole="button"
           >
-            <Shuffle size={24} color={colors.card} />
+            <SFSymbolIcon name="shuffle" />
             <Text style={styles.shuffleText}>
               {isSelecting ? 'Selecting...' : 'Select Random Player'}
             </Text>

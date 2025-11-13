@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Linking } from 'react-native';
-import { Star, Baby, Brain, ChevronDown, ChevronRight, Link as LinkIcon } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { VOTING_OPTIONS, ICON_MAP, VoteType, getIconColor, getVoteBgColor, getVoteBorderColor } from './votingOptions';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -149,9 +150,9 @@ export const GameCard = ({ game, index, selectedVote, onVote, disabled }: Props)
           >
             <Text style={styles.infoText}>Info</Text>
             {isExpanded ? (
-              <ChevronDown size={20} color={colors.accent} />
+              <SFSymbolIcon name="chevron-down" />
             ) : (
-              <ChevronRight size={20} color={colors.accent} />
+              <SFSymbolIcon name="chevron-right" />
             )}
           </TouchableOpacity>
         </View>
@@ -218,7 +219,7 @@ export const GameCard = ({ game, index, selectedVote, onVote, disabled }: Props)
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Brain size={16} color={colors.primary} />
+                <SFSymbolIcon name="brain" />
                 <Text style={styles.detailLabel}>Weight</Text>
                 <Text style={styles.detailValue}>
                   {game.complexity ?
@@ -229,14 +230,14 @@ export const GameCard = ({ game, index, selectedVote, onVote, disabled }: Props)
             </View>
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Star size={16} color={colors.success} />
+                <SFSymbolIcon name="star" />
                 <Text style={styles.detailLabel}>Community Score</Text>
                 <Text style={styles.detailValue}>
                   {game.average ? game.average.toFixed(1) : 'N/A'}
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Baby size={16} color={colors.error} />
+                <SFSymbolIcon name="baby" />
                 <Text style={styles.detailLabel}>Minimum Age</Text>
                 <Text style={styles.detailValue}>
                   {game.minAge ? `${game.minAge}+` : 'N/A'}

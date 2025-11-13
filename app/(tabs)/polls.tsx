@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Platform, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Plus, Share2, Trash2, X, Copy, Check, BarChart3, Users, Edit } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -15,7 +15,6 @@ import { CreatePollModal } from '@/components/CreatePollModal';
 import { EditPollModal } from '@/components/EditPollModal';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { EmptyStatePolls } from '@/components/EmptyStatePolls';
-import { Calendar, Shield } from 'lucide-react-native';
 import { PollScreenCard } from '@/components/PollScreenCard';
 import { usePollResults } from '@/hooks/usePollResults';
 import { Game } from '@/types/game';
@@ -224,7 +223,7 @@ export default function PollsScreen() {
   // Show toast when new votes arrive
   useEffect(() => {
     if (newVotes) {
-      Toast.show({ type: 'info', text1: 'New votes received', text2: 'Refresh to update' });
+      Toast.show({ type: "info", text1: 'New votes received', text2: 'Refresh to update' });
       setNewVotes(false);
     }
   }, [newVotes]);
@@ -365,7 +364,7 @@ export default function PollsScreen() {
             style={styles.createButton}
             onPress={() => setCreateModalVisible(true)}
           >
-            <Plus size={16} color="#ffffff" />
+            <SFSymbolIcon name="plus" color="#ffffff" />
             <Text style={styles.createButtonText}>Create Poll</Text>
           </TouchableOpacity>
           <View style={styles.tabsWrapper}>
@@ -422,7 +421,7 @@ export default function PollsScreen() {
               style={styles.closeShareLinkButton}
               hitSlop={touchTargets.small}
             >
-              <X size={12} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 
@@ -450,9 +449,9 @@ export default function PollsScreen() {
               }}
             >
               {showCopiedConfirmation ? (
-                <Check size={16} color={colors.success} />
+                <SFSymbolIcon name="check" />
               ) : (
-                <Copy size={16} color={colors.accent} />
+                <SFSymbolIcon name="copy" />
               )}
             </TouchableOpacity>
           </View>
@@ -484,7 +483,9 @@ export default function PollsScreen() {
                   <View style={styles.titleRow}>
                     <Text style={[styles.pollTitle, styles.pollTitleLink]} numberOfLines={2}>{item.title}</Text>
                     <View style={styles.titleMetaRow}>
-                      <Calendar size={16} color={colors.textMuted} style={styles.titleCalendarIcon} />
+                      <View style={styles.titleCalendarIcon}>
+                        <SFSymbolIcon name="calendar" size={16} color={colors.textMuted} />
+                      </View>
                       <Text style={styles.pollDateInline} numberOfLines={1}>
                         {new Date(item.created_at).toLocaleDateString()}
                       </Text>
@@ -504,7 +505,7 @@ export default function PollsScreen() {
                       accessibilityHint="Permanently deletes this poll"
                       onPress={() => setPollToDelete(item)}
                     >
-                      <X size={12} color={colors.error} />
+                      <SFSymbolIcon name="x" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -515,7 +516,7 @@ export default function PollsScreen() {
                   accessibilityLabel={`Share poll ${item.title}`}
                   accessibilityRole="button"
                   accessibilityHint="Shares the poll link">
-                  <Share2 size={18} color={colors.accent} style={styles.iconRight} />
+                  <SFSymbolIcon name="share2" />
                   <Text style={styles.shareLinkButtonText}>Share</Text>
                 </TouchableOpacity>
 
@@ -523,7 +524,7 @@ export default function PollsScreen() {
                   accessibilityLabel={`In-Person voting for ${item.title}`}
                   accessibilityRole="button"
                   accessibilityHint="Opens local in-person voting">
-                  <Users size={18} color={colors.success} style={styles.iconRight} />
+                  <SFSymbolIcon name="users" />
                   <Text style={styles.localVoteButtonText}>Local</Text>
                 </TouchableOpacity>
 
@@ -535,7 +536,7 @@ export default function PollsScreen() {
                     accessibilityHint="Edits this poll"
                     onPress={() => handleEditPoll(item)}
                   >
-                    <Edit size={18} color={colors.textMuted} style={styles.iconRight} />
+                    <SFSymbolIcon name="edit" />
                     <Text style={styles.editButtonText}>Edit</Text>
                   </TouchableOpacity>
                 )}
@@ -549,7 +550,7 @@ export default function PollsScreen() {
                 onPress={() => setOpenResultsPollId(isDropdownOpen ? null : item.id)}
                 disabled={item.voteCount === 0}
               >
-                <BarChart3 size={18} color={item.voteCount === 0 ? colors.textMuted : colors.primary} style={styles.iconRight} />
+                <SFSymbolIcon name="barchart3" />
                 <Text style={[styles.resultsButtonText, item.voteCount === 0 && styles.resultsButtonTextDisabled]}>
                   View Results ({item.voteCount})
                 </Text>

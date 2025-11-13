@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ChevronDown, ChevronUp, Calendar, MapPin, Clock } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { EVENT_VOTING_OPTIONS, EVENT_ICON_MAP, EventVoteType, getEventIconColor, getEventVoteBgColor } from './eventVotingOptions';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -75,7 +76,7 @@ export function EventDateResultCard({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.dateIcon}>
-          <Calendar size={24} color={colors.accent} />
+          <SFSymbolIcon name="calendar" />
         </View>
         <View style={styles.dateInfo}>
           <Text style={styles.dateText}>
@@ -83,7 +84,7 @@ export function EventDateResultCard({
           </Text>
           <View style={styles.dateDetails}>
             <View style={styles.dateDetailRow}>
-              <MapPin size={14} color={colors.textMuted} />
+              <SFSymbolIcon name="mappin" />
               <TruncatedText
                 text={displayLocation}
                 maxLength={35}
@@ -92,7 +93,7 @@ export function EventDateResultCard({
               />
             </View>
             <View style={styles.dateDetailRow}>
-              <Clock size={14} color={colors.textMuted} />
+              <SFSymbolIcon name="clock" />
               <Text style={styles.dateDetailText}>
                 {displayTime}
               </Text>
@@ -146,9 +147,9 @@ export function EventDateResultCard({
               {showVoters ? 'Hide Voters' : 'Show Voters'}
             </Text>
             {showVoters ? (
-              <ChevronUp size={16} color={colors.accent} />
+              <SFSymbolIcon name="chevron-up" />
             ) : (
-              <ChevronDown size={16} color={colors.accent} />
+              <SFSymbolIcon name="chevron-down" />
             )}
           </TouchableOpacity>
           {showVoters && (

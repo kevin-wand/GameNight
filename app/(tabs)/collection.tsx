@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { X, ListFilter, Plus } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -369,7 +370,7 @@ export default function CollectionScreen() {
             accessibilityRole="button"
             accessibilityHint="Open filter options to narrow down your game collection"
           >
-            <ListFilter size={20} color={colors.accent} />
+            <SFSymbolIcon name="listfilter" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.filterButton}
@@ -378,7 +379,7 @@ export default function CollectionScreen() {
             accessibilityRole="button"
             accessibilityHint="Add a new game to your collection"
           >
-            <Plus size={20} color={colors.accent} />
+            <SFSymbolIcon name="plus" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.createPollButton}
@@ -387,7 +388,7 @@ export default function CollectionScreen() {
             accessibilityRole="button"
             accessibilityHint="Create a new voting poll with selected games"
           >
-            <Plus size={20} color={colors.card} />
+            <SFSymbolIcon name="plus" />
             <Text style={styles.createPollButtonText}>Create Poll</Text>
           </TouchableOpacity>
         </ScrollView>

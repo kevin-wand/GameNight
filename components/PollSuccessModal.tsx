@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TextStyle, ViewStyle, TouchableOpacity, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Share2, Users, Copy } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
@@ -71,7 +72,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
             accessibilityHint="Closes the poll success modal"
             hitSlop={touchTargets.small}
           >
-            <X size={16} color={colors.textMuted} />
+            <SFSymbolIcon name="x" />
           </TouchableOpacity>
 
           <View style={styles.content}>
@@ -83,7 +84,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
             {/* Share Link Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Share2 size={20} color={colors.accent} />
+                <SFSymbolIcon name="share2" />
                 <Text style={styles.sectionTitle}>Share the Link</Text>
               </View>
               <Text style={styles.sectionDescription}>
@@ -100,7 +101,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
                   accessibilityHint="Copies the poll link to your clipboard"
                   hitSlop={touchTargets.small}
                 >
-                  <Copy size={16} color="#ffffff" />
+                  <SFSymbolIcon name="copy" color="#ffffff" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -108,7 +109,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
             {/* In-Person Voting Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Users size={20} color={colors.primary} />
+                <SFSymbolIcon name="users" />
                 <Text style={styles.sectionTitle}>Vote In-Person</Text>
               </View>
               <Text style={styles.sectionDescription}>
@@ -121,7 +122,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
                 accessibilityHint="Opens the poll for in-person voting on this device"
                 hitSlop={touchTargets.small}
               >
-                <Users size={20} color="#ffffff" />
+                <SFSymbolIcon name="users" color="#ffffff" />
                 <Text style={styles.startVotingButtonText}>Start In-Person Voting</Text>
               </TouchableOpacity>
             </View>

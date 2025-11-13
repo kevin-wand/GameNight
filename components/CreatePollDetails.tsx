@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TextStyle, ViewStyle, TouchableOpacity, TextInput, Platform, Modal, ScrollView } from 'react-native';
-import { X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useDeviceType } from '@/hooks/useDeviceType';
@@ -64,7 +65,7 @@ export const CreatePollDetails: React.FC<CreatePollDetailsProps> = ({
               accessibilityHint="Closes the poll details editor"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as Linking from 'expo-linking';
@@ -195,7 +196,7 @@ export default function UpdatePasswordScreen() {
                 accessibilityLabel="Back to login"
                 accessibilityRole="button"
               >
-                <ArrowLeft color={colors.textMuted} size={20} />
+                <SFSymbolIcon name="arrow-left" />
                 <Text style={styles.backText}>Back to Login</Text>
               </TouchableOpacity>
             </View>
@@ -379,7 +380,7 @@ export default function UpdatePasswordScreen() {
 
             {success && (
               <View style={styles.successContainer}>
-                <CheckCircle color={colors.success} size={20} style={styles.successIcon} />
+                <SFSymbolIcon name="checkcircle" />
                 <Text style={styles.successText}>Password updated! Redirecting to login...</Text>
               </View>
             )}
@@ -405,7 +406,7 @@ export default function UpdatePasswordScreen() {
               accessibilityLabel="Back to login"
               accessibilityRole="button"
             >
-              <ArrowLeft color={colors.textMuted} size={20} />
+              <SFSymbolIcon name="arrow-left" />
               <Text style={styles.backText}>Back to Login</Text>
             </TouchableOpacity>
           </View>

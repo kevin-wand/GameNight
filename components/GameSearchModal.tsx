@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Platform, FlatList, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Plus } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { supabase } from '@/services/supabase';
 import { debounce } from 'lodash';
 import { XMLParser } from 'fast-xml-parser';
@@ -311,7 +312,7 @@ export const GameSearchModal: React.FC<GameSearchModalProps> = ({
             accessibilityHint={mode === 'collection' ? 'Adds game to your collection' : 'Adds game to the current poll'}
             hitSlop={touchTargets.sizeTwenty}
           >
-            <Plus size={20} color="#ffffff" />
+            <SFSymbolIcon name="plus" color="#ffffff" />
           </TouchableOpacity>
         </View>
       )}
@@ -344,7 +345,7 @@ export const GameSearchModal: React.FC<GameSearchModalProps> = ({
               accessibilityHint="Closes the game search modal"
               hitSlop={touchTargets.sizeTwenty}
             >
-              <X size={20} color={colors.textMuted} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
           </View>
 
@@ -379,7 +380,7 @@ export const GameSearchModal: React.FC<GameSearchModalProps> = ({
                   accessibilityHint="Clears the current search text"
                   hitSlop={touchTargets.small}
                 >
-                  <X size={16} color={colors.textMuted} />
+                  <SFSymbolIcon name="x" />
                 </TouchableOpacity>
               )}
             </View>

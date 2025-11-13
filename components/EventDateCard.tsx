@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Calendar, MapPin, Clock } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { format } from 'date-fns';
 
 import { EVENT_VOTING_OPTIONS, EVENT_ICON_MAP, EventVoteType, getEventIconColor, getEventVoteBgColor, getEventVoteBorderColor } from './eventVotingOptions';
@@ -58,7 +59,7 @@ export const EventDateCard = ({
       {/* Date info and details */}
       <View style={styles.dateInfoRow}>
         <View style={styles.dateIcon}>
-          <Calendar size={24} color={colors.accent} />
+          <SFSymbolIcon name="calendar" />
         </View>
         <View style={styles.dateInfo}>
           <Text style={styles.dateText}>
@@ -66,7 +67,7 @@ export const EventDateCard = ({
           </Text>
           <View style={styles.dateDetails}>
             <View style={styles.dateDetailRow}>
-              <MapPin size={14} color={colors.textMuted} />
+              <SFSymbolIcon name="mappin" />
               <TruncatedText
                 text={displayLocation}
                 maxLength={35}
@@ -75,7 +76,7 @@ export const EventDateCard = ({
               />
             </View>
             <View style={styles.dateDetailRow}>
-              <Clock size={14} color={colors.textMuted} />
+              <SFSymbolIcon name="clock" />
               <Text style={styles.dateDetailText}>
                 {displayTime}
               </Text>

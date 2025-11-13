@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/services/supabase';
@@ -115,7 +116,7 @@ export default function LoginScreen() {
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Email</Text>
                 <View style={styles.inputWrapper}>
-                  {/* <Mail color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
+                  {/* <SFSymbolIcon name="mail" /> */}
                   <TextInput
                     style={styles.input}
                     value={email}
@@ -172,7 +173,7 @@ export default function LoginScreen() {
                 accessibilityLabel={loading ? "Signing in" : "Sign in"}
                 accessibilityRole="button"
               >
-                <LogIn color={colors.card} size={20} />
+                <SFSymbolIcon name="login" />
                 <Text style={styles.buttonText}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Text>

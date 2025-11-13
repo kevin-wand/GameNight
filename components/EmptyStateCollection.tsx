@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { RefreshCw, Star, Filter, Users, Plus } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useRouter } from 'expo-router';
 import { AddGameModal } from '@/components/AddGameModal';
 import { useTheme } from '@/hooks/useTheme';
@@ -48,17 +49,17 @@ export const EmptyStateCollection: React.FC<EmptyStateCollectionProps> = ({
         {/* Benefits list */}
         <View style={styles.benefitsList}>
           <View style={styles.benefitItem}>
-            <Star size={20} color={colors.accent} />
+            <SFSymbolIcon name="star" />
             <Text style={styles.benefitText}>Track your collection</Text>
           </View>
 
           <View style={styles.benefitItem}>
-            <Filter size={20} color={colors.accent} />
+            <SFSymbolIcon name="filter" />
             <Text style={styles.benefitText}>Easily filter to find the right game</Text>
           </View>
 
           <View style={styles.benefitItem}>
-            <Users size={20} color={colors.accent} />
+            <SFSymbolIcon name="users" />
             <Text style={styles.benefitText}>Let your friends vote on what they want to play</Text>
           </View>
         </View>
@@ -75,7 +76,7 @@ export const EmptyStateCollection: React.FC<EmptyStateCollectionProps> = ({
           accessibilityRole="button"
           accessibilityHint="Opens a modal to add games manually"
         >
-          <Plus size={20} color={colors.card} />
+          <SFSymbolIcon name="plus" />
           <Text style={styles.addGameButtonText}>Add Games</Text>
         </TouchableOpacity>
 
@@ -110,7 +111,7 @@ export const EmptyStateCollection: React.FC<EmptyStateCollectionProps> = ({
         accessibilityRole="button"
         accessibilityHint="Clears current filters to show all games"
       >
-        <RefreshCw size={18} color={colors.card} />
+        <SFSymbolIcon name="refresh" />
         <Text style={styles.refreshText}>{buttonText}</Text>
       </TouchableOpacity>
 

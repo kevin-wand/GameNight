@@ -11,7 +11,8 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { X, Save } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -182,7 +183,7 @@ export default function EditProfileModal({
               accessibilityLabel="Close"
               accessibilityRole="button"
             >
-              <X size={24} color={colors.text} />
+              <SFSymbolIcon name="x" />
             </TouchableOpacity>
             <Text style={styles.title}>Edit Profile</Text>
             <TouchableOpacity

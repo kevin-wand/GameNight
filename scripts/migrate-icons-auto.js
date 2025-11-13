@@ -72,7 +72,8 @@ const ICON_MAPPINGS = {
   'AlertTriangle': 'alert-triangle',
   'SquarePen': 'square-pen',
   'Shield': 'shield',
-  'CircleAlert': 'circle-alert'
+  'CircleAlert': 'circle-alert',
+  'XCircle': 'xmark-circle'
 };
 
 // Files to skip (none - we want to migrate all files)
@@ -128,30 +129,98 @@ function migrateFile(filePath) {
     importedIcons.forEach(iconName => {
       const sfSymbolName = ICON_MAPPINGS[iconName];
       
-      // Pattern for icon usage: <IconName ... />
-      const iconPattern = new RegExp(`<${iconName}\\s+([^>]*?)\\s*/>`, 'g');
+      // Pattern 1: JSX usage: <IconName ... /> or <IconName ...></IconName>
+      // Handle both self-closing and with children, with flexible spacing
+      const jsxPattern = new RegExp(`<${iconName}(\\s+[^>]*?)?\\s*(/>|>.*?</${iconName}>)`, 'gs');
       
-      newContent = newContent.replace(iconPattern, (match, props) => {
+      newContent = newContent.replace(jsxPattern, (match, props, closing) => {
         changesMade++;
         
-        // Extract props
-        const propsMatch = props.match(/(\w+)=["']([^"']*)["']/g);
-        let extractedProps = {};
+        // Extract props (handle both quoted strings and JSX expressions)
+        const propsStr = props || '';
+        // Match props like: size={16} or color="red" or style={styles.icon}
+        const propsMatch = propsStr.match(/(\w+)=(?:{([^}]+)}|(["'])([^"']+)\3)/g);
+        let extractedProps = [];
+        let styleValue = null;
         
         if (propsMatch) {
           propsMatch.forEach(prop => {
-            const [key, value] = prop.split('=');
-            extractedProps[key] = value.replace(/['"]/g, '');
+            // Handle JSX expressions: size={16} or style={styles.icon}
+            const jsxMatch = prop.match(/(\w+)={([^}]+)}/);
+            if (jsxMatch) {
+              const [, key, value] = jsxMatch;
+              if (key === 'style') {
+                // Store style value separately - SFSymbolIcon doesn't accept style
+                styleValue = value;
+              } else {
+                extractedProps.push(`${key}={${value}}`);
+              }
+            } else {
+              // Handle string values: color="red"
+              const strMatch = prop.match(/(\w+)=(["'])([^"']+)\2/);
+              if (strMatch) {
+                const [, key, , value] = strMatch;
+                extractedProps.push(`${key}="${value}"`);
+              }
+            }
           });
         }
         
-        // Build new SFSymbolIcon props
-        const newProps = Object.entries(extractedProps)
-          .map(([key, value]) => `${key}="${value}"`)
-          .join(' ');
+        // Build new SFSymbolIcon props (exclude style)
+        const newProps = extractedProps.join(' ');
         
-        return `<SFSymbolIcon name="${sfSymbolName}" ${newProps} />`;
+        if (styleValue) {
+          // Wrap in View to apply style
+          return `<View style={${styleValue}}><SFSymbolIcon name="${sfSymbolName}" ${newProps ? newProps + ' ' : ''}/></View>`;
+        } else {
+          return `<SFSymbolIcon name="${sfSymbolName}" ${newProps ? newProps + ' ' : ''}/>`;
+        }
       });
+      
+      // Pattern 2: Component reference in object properties: icon: IconName,
+      // This converts component references to string names for use with SFSymbolIcon
+      const objectPropertyPattern = new RegExp(`(\\s+)(icon|Icon)\\s*:\\s*${iconName}\\s*([,}])`, 'g');
+      newContent = newContent.replace(objectPropertyPattern, (match, indent, prop, suffix) => {
+        changesMade++;
+        return `${indent}${prop}: "${sfSymbolName}"${suffix}`;
+      });
+      
+      // Pattern 3: Component reference in ICON_MAP objects: IconName,
+      const iconMapPattern = new RegExp(`(\\s+)(\\w+Icon|\\w+):\\s*${iconName}\\s*([,}])`, 'g');
+      newContent = newContent.replace(iconMapPattern, (match, indent, key, suffix) => {
+        changesMade++;
+        return `${indent}${key}: "${sfSymbolName}"${suffix}`;
+      });
+    });
+    
+    // Pattern 4: Update component usage when icon is now a string
+    // Replace: const IconComponent = item.icon; <IconComponent ... />
+    // With: <SFSymbolIcon name={item.icon} ... />
+    const componentUsagePattern = /const\s+(\w+)\s*=\s*(\w+)\.icon\s*;[\s\S]*?<(\1)\s+([^>]*?)\s*\/>/g;
+    newContent = newContent.replace(componentUsagePattern, (match, varName, objName, componentName, props) => {
+      // Only replace if we've converted icons to strings in this file
+      if (changesMade > 0) {
+        changesMade++;
+        return `<SFSymbolIcon name={${objName}.icon} ${props} />`;
+      }
+      return match;
+    });
+    
+    // Pattern 5: Direct component usage: <IconComponent ... /> where IconComponent comes from item.icon
+    // This is a simpler pattern for cases like ToolsFooter
+    newContent = newContent.replace(/<IconComponent\s+([^>]*?)\s*\/>/g, (match, props) => {
+      // Check if we're in a context where icon was converted to string
+      const beforeMatch = newContent.substring(0, newContent.indexOf(match));
+      if (beforeMatch.includes('icon: "') && beforeMatch.includes('const IconComponent = item.icon')) {
+        changesMade++;
+        // Extract the object name from context
+        const objMatch = beforeMatch.match(/const\s+IconComponent\s*=\s*(\w+)\.icon/);
+        if (objMatch) {
+          const objName = objMatch[1];
+          return `<SFSymbolIcon name={${objName}.icon} ${props} />`;
+        }
+      }
+      return match;
     });
 
     // Write the updated content

@@ -2,7 +2,8 @@ import 'react-native-reanimated';
 import { Tabs } from 'expo-router';
 import { StyleSheet, Platform, View, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, Library, User, Vote, Wrench } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useEffect, useState, useMemo } from 'react';
 import { saveLastVisitedTab, getLastVisitedTab } from '@/utils/storage';
 import { useAccessibilityContext } from '@/contexts/AccessibilityContext';
@@ -120,7 +121,7 @@ export default function TabLayout() {
         options={{
           title: 'Collection',
           tabBarIcon: ({ color, size }) => (
-            <Library color={color} size={size} />
+            <SFSymbolIcon name="library" />
           ),
         }}
       />
@@ -129,7 +130,7 @@ export default function TabLayout() {
         options={{
           title: 'Tools',
           tabBarIcon: ({ color, size }) => (
-            <Wrench color={color} size={size} />
+            <SFSymbolIcon name="wrench" />
           ),
         }}
       />
@@ -138,7 +139,7 @@ export default function TabLayout() {
         options={{
           title: 'Events',
           tabBarIcon: ({ color, size }) => (
-            <Calendar color={color} size={size} />
+            <SFSymbolIcon name="calendar" />
           ),
         }}
       />
@@ -147,7 +148,7 @@ export default function TabLayout() {
         options={{
           title: 'Organize',
           tabBarIcon: ({ color, size }) => (
-            <Vote color={color} size={size} />
+            <SFSymbolIcon name="vote" />
           ),
         }}
       />
@@ -156,7 +157,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <User color={color} size={size} />
+            <SFSymbolIcon name="user" />
           ),
         }}
       />

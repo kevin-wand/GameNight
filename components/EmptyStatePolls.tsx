@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Filter, Plus, Search, CheckSquare, Share2 } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 
@@ -22,15 +23,15 @@ export const EmptyStatePolls: React.FC<EmptyStatePollsProps> = ({ onCreate }) =>
 
       <View style={styles.stepsContainer}>
         <View style={styles.stepRow}>
-          <Filter size={20} color={colors.accent} style={styles.stepIcon} />
+          <SFSymbolIcon name="filter" />
           <Text style={styles.stepText}><Text style={styles.stepBoldText}>Filter</Text> – View your collection or find something new </Text>
         </View>
         <View style={styles.stepRow}>
-          <CheckSquare size={20} color={colors.accent} style={styles.stepIcon} />
+          <SFSymbolIcon name="check-square" />
           <Text style={styles.stepText}><Text style={styles.stepBoldText}>Select</Text> – Add games to your poll</Text>
         </View>
         <View style={styles.stepRow}>
-          <Share2 size={20} color={colors.accent} style={styles.stepIcon} />
+          <SFSymbolIcon name="share2" />
           <Text style={styles.stepText}><Text style={styles.stepBoldText}>Share</Text> – Send the poll via link or vote together on one device!</Text>
         </View>
       </View>
@@ -45,7 +46,7 @@ export const EmptyStatePolls: React.FC<EmptyStatePollsProps> = ({ onCreate }) =>
         accessibilityRole="button"
         accessibilityHint="Opens the poll creation modal"
       >
-        <Plus size={20} color={colors.card} style={{ marginRight: 8 }} />
+        <SFSymbolIcon name="plus" />
         <Text style={styles.buttonText}>Create Poll</Text>
       </TouchableOpacity>
       <Text style={styles.note}>

@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LoadingState } from '@/components/LoadingState';
 import { ErrorState } from '@/components/ErrorState';
 import { supabase } from '@/services/supabase';
-import { Calendar, MapPin, Clock, Trophy, Medal, Award } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { Poll, PollEvent } from '@/types/poll';
 import { TruncatedText } from '@/components/TruncatedText';

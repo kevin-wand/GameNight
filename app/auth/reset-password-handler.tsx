@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/services/supabase';
@@ -172,7 +173,7 @@ export default function ResetPasswordHandler() {
 
               {status === 'success' && (
                 <View style={styles.statusItem}>
-                  <CheckCircle color={colors.success} size={32} />
+                  <SFSymbolIcon name="checkcircle" />
                   <Text style={styles.statusText}>Reset link verified!</Text>
                 </View>
               )}

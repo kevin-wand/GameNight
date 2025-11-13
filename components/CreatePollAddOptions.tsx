@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextStyle, ViewStyle, TouchableOpacity, Platform } from 'react-native';
-import { X } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useDeviceType } from '@/hooks/useDeviceType';
 
 interface CreatePollAddOptionsProps {
@@ -42,7 +43,7 @@ export const CreatePollAddOptions: React.FC<CreatePollAddOptionsProps> = ({
             accessibilityLabel="Close"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <X size={24} color="#666666" />
+            <SFSymbolIcon name="x" color="#666666" />
           </TouchableOpacity>
         </View>
 

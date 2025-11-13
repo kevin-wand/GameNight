@@ -7,7 +7,8 @@ import { ErrorState } from '@/components/ErrorState';
 import { usePollResults } from '@/hooks/usePollResults';
 import { GameResultCard } from '@/components/PollGameResultCard';
 import { supabase } from '@/services/supabase';
-import { Trophy, Medal, Award, Vote } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import Toast from 'react-native-toast-message';
 import { useRef } from 'react';
 import { useTheme } from '@/hooks/useTheme';
@@ -72,7 +73,7 @@ export default function PollResultsScreen() {
   // Show toast when new votes arrive
   useEffect(() => {
     if (newVotes) {
-      Toast.show({ type: 'info', text1: 'New votes received', text2: 'Refresh to update' });
+      Toast.show({ type: "info", text1: 'New votes received', text2: 'Refresh to update' });
       setNewVotes(false);
     }
   }, [newVotes]);
@@ -94,11 +95,11 @@ export default function PollResultsScreen() {
   const getRankingIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <Trophy size={24} color={colors.warning} />; // Gold for 1st place
+        return <SFSymbolIcon name="trophy" />; // Gold for 1st place
       case 2:
-        return <Medal size={24} color={colors.tints.neutral} />; // Silver for 2nd place
+        return <SFSymbolIcon name="medal" />; // Silver for 2nd place
       case 3:
-        return <Award size={24} color={colors.tints.accent} />; // Bronze for 3rd place
+        return <SFSymbolIcon name="award" />; // Bronze for 3rd place
       default:
         return null;
     }
@@ -220,7 +221,7 @@ export default function PollResultsScreen() {
           accessibilityRole="button"
           accessibilityHint={hasVoted ? 'Returns to voting screen' : 'Opens voting screen to cast your vote'}
         >
-          <Vote size={20} color={colors.card} />
+          <SFSymbolIcon name="vote" />
           <Text style={styles.backToVotingButtonText}>
             {hasVoted ? 'Back to Voting' : 'Vote Now'}
           </Text>

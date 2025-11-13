@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TextStyle, ViewStyle, TouchableOpacity, ScrollView, TextInput, Platform, Image, ImageStyle, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Plus, Check, Users, ChevronDown, ChevronUp, Clock, Brain, Users as Users2, Baby, ArrowLeft, SquarePen, ListFilter, Search } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useRouter } from 'expo-router';
 import { supabase } from '@/services/supabase';
 import { useCallback } from 'react';
@@ -388,7 +389,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
           accessibilityLabel="Back to Edit Poll"
           hitSlop={touchTargets.small}
         >
-          <ArrowLeft size={16} color={colors.textMuted} />
+          <SFSymbolIcon name="arrow-left" />
         </TouchableOpacity>
       )}
       <TouchableOpacity
@@ -397,7 +398,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
         accessibilityLabel="Close"
         hitSlop={touchTargets.sizeTwenty}
       >
-        <X size={20} color={colors.textMuted} />
+        <SFSymbolIcon name="x" />
       </TouchableOpacity>
       <View style={styles.header}>
         <Text style={styles.title}>
@@ -427,7 +428,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
                     <View style={[styles.titleButtonIndicator, { opacity: pollTitle ? 1 : 0, marginRight: 8 }]}>
                       <Text style={styles.titleButtonIndicatorText}>✓</Text>
                     </View>
-                    <SquarePen size={20} color={colors.textMuted} />
+                    <SFSymbolIcon name="square-pen" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -447,7 +448,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
                     <View style={[styles.descriptionButtonIndicator, { opacity: pollDescription ? 1 : 0 }]}>
                       <Text style={styles.descriptionButtonIndicatorText}>✓</Text>
                     </View>
-                    <SquarePen size={20} color={colors.textMuted} />
+                    <SFSymbolIcon name="square-pen" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -471,7 +472,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
                 <View style={[styles.filterButtonIndicator, { opacity: isFiltered ? 1 : 0 }]}>
                   <Text style={styles.filterButtonIndicatorText}>✓</Text>
                 </View>
-                <ListFilter size={20} color={colors.textMuted} />
+                <SFSymbolIcon name="listfilter" />
               </View>
             </View>
           </TouchableOpacity>
@@ -491,7 +492,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
             accessibilityLabel="Search for games"
             accessibilityHint="Opens game search modal to find and add games"
           >
-            <Search size={16} color="#fff" />
+            <SFSymbolIcon name="search" color="#fff" />
             <Text style={styles.searchButtonText}>Search for Games</Text>
           </TouchableOpacity>
         </View>
@@ -616,7 +617,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
                     }}
                     hitSlop={touchTargets.small}
                   >
-                    <X size={16} color={colors.textMuted} />
+                    <SFSymbolIcon name="x" />
                   </TouchableOpacity> */}
                   <View style={[
                     styles.checkbox,
@@ -624,7 +625,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
                     isAlreadyInPoll && styles.checkboxDisabled
                   ]}>
                     {selectedGamesForPoll.some(g => g.id === game.id) && (
-                      <Check size={16} color="#ffffff" />
+                      <SFSymbolIcon name="check" color="#ffffff" />
                     )}
                   </View>
                 </TouchableOpacity>
@@ -722,7 +723,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
                     isAlreadyInPoll && styles.checkboxDisabled
                   ]}>
                     {isSelected && (
-                      <Check size={16} color="#ffffff" />
+                      <SFSymbolIcon name="check" color="#ffffff" />
                     )}
                   </View>
                 </TouchableOpacity>
@@ -741,7 +742,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
           accessibilityLabel={loading ? (isAddingToExistingPoll ? 'Adding games...' : 'Creating poll...') : (isAddingToExistingPoll ? 'Add selected games to poll' : 'Create poll with selected games')}
           accessibilityHint={selectedGamesForPoll.length === 0 ? 'Select at least one game to continue' : undefined}
         >
-          <Plus size={20} color="#fff" style={{ marginRight: 3 }} />
+          <SFSymbolIcon name="plus" color="#fff" />
           <Text style={styles.createButtonText}>
             {loading ? (isAddingToExistingPoll ? 'Adding...' : 'Creating...') : (isAddingToExistingPoll ? 'Add Games' : 'Create Poll')}
           </Text>

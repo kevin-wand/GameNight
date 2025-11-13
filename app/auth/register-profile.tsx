@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
-import { ArrowLeft, User, UserPlus } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -262,7 +263,7 @@ export default function RegisterProfileScreen() {
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Username *</Text>
               <View style={styles.inputWrapper}>
-                <User color={colors.textMuted} size={20} style={styles.inputIcon} />
+                <SFSymbolIcon name="user" />
                 <TextInput
                   style={styles.inputUsername}
                   value={username}
@@ -343,7 +344,7 @@ export default function RegisterProfileScreen() {
               accessibilityLabel={loading ? 'Creating account' : 'Create account'}
               accessibilityHint="Creates your profile and continues"
             >
-              <UserPlus color={colors.card} size={20} />
+              <SFSymbolIcon name="user-plus" />
               <Text style={styles.createButtonText}>
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Text>
@@ -358,7 +359,7 @@ export default function RegisterProfileScreen() {
               accessibilityLabel="Back"
               accessibilityHint="Go back to sign in"
             >
-              <ArrowLeft color={colors.textMuted} size={20} />
+              <SFSymbolIcon name="arrow-left" />
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
 

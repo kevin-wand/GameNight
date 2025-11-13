@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, X, Info, CheckCircle } from 'lucide-react-native';
+import SFSymbolIcon from '@/components/SFSymbolIcon';
+;
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
@@ -115,7 +116,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
 
   const getProgressIcon = () => {
     if (syncProgress?.stage === 'complete') {
-      return <CheckCircle size={20} color={colors.success} />;
+      return <SFSymbolIcon name="checkcircle" />;
     }
     return <ActivityIndicator color="#ffffff" size="small" />;
   };
@@ -152,7 +153,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
           accessibilityHint="Saves the BGG username to your profile for future imports"
         >
           <View style={[styles.checkboxBox, saveToProfile && styles.checkboxChecked]}>
-            {saveToProfile && <CheckCircle size={16} color="#ffffff" />}
+            {saveToProfile && <SFSymbolIcon name="checkcircle" color="#ffffff" />}
           </View>
           <Text style={styles.checkboxText}>
             {savedBggUsername ? 'Update BGG username on my Klack profile for future imports' : 'Add BGG username to my Klack profile for future imports'}
@@ -178,7 +179,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
           </View>
         ) : (
           <>
-            <Search color="#ffffff" size={20} />
+            <SFSymbolIcon name="search" color="#ffffff" />
             <Text style={styles.syncButtonText}>Import Collection</Text>
           </>
         )}
@@ -208,7 +209,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
           </View>
         ) : (
           <>
-            <Search color="#ffffff" size={20} />
+            <SFSymbolIcon name="search" color="#ffffff" />
             <Text style={styles.syncButtonText}>Import {savedBggUsername}'s Collection</Text>
           </>
         )}
@@ -240,7 +241,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
           accessibilityHint="Closes the sync modal"
           hitSlop={touchTargets.sizeTwenty}
         >
-          <X size={20} color={colors.textMuted} />
+          <SFSymbolIcon name="x" />
         </TouchableOpacity>
       </View>
 
