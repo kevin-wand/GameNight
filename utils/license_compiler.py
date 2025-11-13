@@ -1,12 +1,12 @@
 import os
 import re
-# import shutil
 import json
 import glob
-# import git
 import pprint
 import requests
 from bs4 import BeautifulSoup
+# import git
+# import shutil
 
 URL_PREFIX = 'https://github.com'
 EMPTY_DIR = './empty'
@@ -39,7 +39,7 @@ def get_license_from_github_url(url):
       blob = json.loads(license_json)['payload']['blob']
       # pprint.pp(blob)
       lics.append({
-        'content': '\n'.join(blob['rawLines']) if blob['rawLines'] else blob['richText'],
+        'content': '\n'.join(blob['rawLines']) if blob.get('rawLines') else blob['richText'],
         'file': blob['displayName'],
       })
   return {
@@ -52,7 +52,7 @@ def make_license_md(package):
 f'''## {package['name']}
 
 Version: {package['version']}
-{f'\nURL: {package.get('url')}' if package.get('url') else ''}
+{f'\nURL: {make_link(package.get('url'))}' if package.get('url') else ''}
 {f'\nAuthor: {package.get('author')}' if package.get('author') else ''}
 {f'\n\n{package.get('content')}\n\n' if package.get('content') else ''}
 Description: {package.get('description')}
@@ -64,22 +64,13 @@ Type: {package.get('type') or 'N/A'}
 
 ''')
 
-def main2():
-   pprint.pp(get_license_from_github_url('https://github.com/facebook/react-native'))
-
 def main():
   failures = []
   output_file = open(OUTPUT_FILENAME, 'w', encoding='utf-8')
-  # license_count = 0
-  # no_license_count = 0
   packages = json.load(open(JSON_FILENAME, encoding='utf-8'))
   for key, package in sorted(packages.items()):
-    print(package['name'])
-    # if package.get('content'):
-    #   yield package
+    print(package['name'], package['version'])
     if not package.get('content'):
-      # package['content'] = ''
-      # package['file'] = []
       package_dir = f'../node_modules/{package['name']}'
       matches = glob.glob(f'{package_dir}/*LICENSE*')
       if matches:
@@ -93,27 +84,12 @@ def main():
           print('*** NO URL ***')
     output_file.write(make_license_md(package))
   if failures:
-    print('FAILURES:')
+    print('\nFAILURES:')
     for failure in failures:
       print(failure)
-        # if os.path.exists(EMPTY_DIR):
-        #   shutil.rmtree(EMPTY_DIR)
-        # empty_repo = git.Repo.init(EMPTY_DIR)
-        # origin = empty_repo.create_remote('origin', package['url'])
-        # origin.fetch()
-        # if origin and origin.refs:
-        #   print(package['url'], 'success')
-        #   for blob in origin.refs.HEAD.commit.tree.blobs:
-        #     pass
-        # else:
-        #   print(package['url'])
-        #   pprint.pp(origin.refs)
-          # if 'license' in 
-    # else:
-    #   no_license_count += 1
-    #   print(key)
-  # print(license_count)
-  # print(no_license_count)
+
+def main2():
+   pprint.pp(get_license_from_github_url('https://github.com/facebook/react-native'))
 
 if __name__ == '__main__':
   main()
