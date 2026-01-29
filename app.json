@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Klack",
+    "name": "Klack: Game Night Planner",
     "slug": "klack",
     "version": "1.0.3",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.klack.app",
+      "bundleIdentifier": "com.klack-app.klack",
       "buildNumber": "1",
       "infoPlist": {
         "CFBundleURLTypes": [
@@ -19,14 +19,21 @@
             "CFBundleURLSchemes": [
               "klack"
             ]
+          },
+          {
+            "CFBundleURLName": "klack",
+            "CFBundleURLSchemes": [
+              "klack"
+            ]
           }
         ],
         "NSCameraUsageDescription": "Klack needs camera access to take photos of your board game collection for AI analysis.",
-        "NSPhotoLibraryUsageDescription": "Klack needs photo library access to select existing photos of your board game collection."
+        "NSPhotoLibraryUsageDescription": "Klack needs photo library access to select existing photos of your board game collection.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.klack.app",
+      "package": "com.klack-app.klack",
       "versionCode": 1,
       "intentFilters": [
         {
@@ -59,6 +66,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "25c621c2-d25e-4b68-b14f-525009067449"
+      }
+    },
+    "owner": "klack-llc"
   }
 }
