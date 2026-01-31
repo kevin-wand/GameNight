@@ -30,7 +30,7 @@
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.10",
     "expo-status-bar": "~3.0.8",
-    "fast-xml-parser": "^4.3.2",
+    "fast-xml-parser": "^5.3.4",
     "html-entities": "^2.6.0",
     "lodash": "^4.17.21",
     "lucide-react-native": "^0.534.0",
