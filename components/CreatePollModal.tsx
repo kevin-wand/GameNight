@@ -287,7 +287,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
 
       // Show success modal for new polls, call onSuccess immediately for adding games
       if (!isAddingToExistingPoll) {
-        const pollUrl = `${window.location.origin}/poll/${poll.id}/`;
+        const pollUrl = `${window?.location?.origin || 'https://klack.netlify.app/'}/poll/${poll.id}/`;
         setCreatedPollUrl(pollUrl);
         setIsPollCreatedModalVisible(true);
 
