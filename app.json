@@ -33,7 +33,7 @@
       }
     },
     "android": {
-      "package": "com.klack-app.klack",
+      "package": "com.klack_app.klack",
       "versionCode": 1,
       "intentFilters": [
         {
@@ -61,8 +61,8 @@
       "web"
     ],
     "plugins": [
-      "expo-router",
-      "react-native-legal"
+      "expo-router"
+      //,"react-native-legal"
     ],
     "experiments": {
       "typedRoutes": true
