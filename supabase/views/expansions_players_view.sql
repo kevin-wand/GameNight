@@ -1,4 +1,4 @@
-/* This view expands on the `collections_games` view by adding
+/* This view extends the `collections_games` view by adding
 the `min_exp_players` and `max_exp_players` columns. These are
 intended for determining the "expanded" player counts from game expansions,
 such as a max player count of 6 for Catan when the 5-6 player expansion is owned:

@@ -49,6 +49,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
     if (onStartInPersonVoting) {
       onStartInPersonVoting();
     }
+    onDone();
   };
 
   const styles = useMemo(() => getStyles(colors, typography, insets), [colors, typography, insets]);

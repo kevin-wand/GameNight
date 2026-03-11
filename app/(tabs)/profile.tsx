@@ -11,6 +11,8 @@ import { useAccessibilityContext } from '@/contexts/AccessibilityContext';
 import { supabase } from '@/services/supabase';
 import EditProfileModal from '@/components/EditProfileModal';
 
+import * as DevClient from 'expo-dev-client';
+
 const discordSymbolLight = require('@/assets/images/Discord-Symbol-Blurple.svg');
 const discordSymbolDark = require('@/assets/images/Discord-Symbol-Blurple.svg');
 const bggLogoLight = require('@/assets/images/powered-by-bgg-rgb.svg');
@@ -174,6 +176,25 @@ export default function ProfileScreen() {
           <Text style={styles.themeToggleText}>
             {isDark ? 'Light Mode' : 'Dark Mode'}
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.themeToggleButton}
+          onPress={() => DevClient.openMenu()}
+        >
+          <Text style={styles.themeToggleText}>Open Dev Menu</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.themeToggleButton}
+          onPress={() => DevClient.hideMenu()}
+        >
+          <Text style={styles.themeToggleText}>Hide Dev Menu</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.themeToggleButton}
+          onPress={() => DevClient.closeMenu()}
+        >
+          <Text style={styles.themeToggleText}>Close Dev Menu</Text>
         </TouchableOpacity>
       </View>
 
