@@ -11,6 +11,8 @@ import { useAccessibilityContext } from '@/contexts/AccessibilityContext';
 import { supabase } from '@/services/supabase';
 import EditProfileModal from '@/components/EditProfileModal';
 
+import * as DevClient from 'expo-dev-client';
+
 const discordSymbolLight = require('@/assets/images/Discord-Symbol-Blurple.svg');
 const discordSymbolDark = require('@/assets/images/Discord-Symbol-Blurple.svg');
 const bggLogoLight = require('@/assets/images/powered-by-bgg-rgb.svg');
@@ -175,6 +177,25 @@ export default function ProfileScreen() {
             {isDark ? 'Light Mode' : 'Dark Mode'}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.themeToggleButton}
+          onPress={() => DevClient.openMenu()}
+        >
+          <Text style={styles.themeToggleText}>Open Dev Menu</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.themeToggleButton}
+          onPress={() => DevClient.hideMenu()}
+        >
+          <Text style={styles.themeToggleText}>Hide Dev Menu</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.themeToggleButton}
+          onPress={() => DevClient.closeMenu()}
+        >
+          <Text style={styles.themeToggleText}>Close Dev Menu</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
@@ -191,13 +212,13 @@ export default function ProfileScreen() {
           <View style={styles.contactContainer}>
             <Text style={styles.contactText}>
               Questions, issues, or feature requests?{'\n'}
-              For any support needs, contact klackapp@gmail.com or join our Discord server.
+              For any support needs, contact support@klack-app.com or join our Discord server.
             </Text>
             { /*<TouchableOpacity
               accessibilityLabel="Email support"
               accessibilityRole="button"
               accessibilityHint="Opens your email app to contact support"
-              onPress={() => Linking.openURL('mailto:klackapp@gmail.com')}
+              onPress={() => Linking.openURL('mailto:support@klack-app.com')}
               style={styles.iconButton}
             >
               <Mail size={28} color={colors.textMuted} />
@@ -216,6 +237,48 @@ export default function ProfileScreen() {
               />
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => Linking.openURL('/TERMS_OF_SERVICE.html')}
+            accessibilityLabel="Terms of Service"
+            accessibilityRole="button"
+            accessibilityHint="Opens Klack's terms of service in your browser"
+          >
+            <Text style={styles.actionButtonText}>
+              Terms of Service
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => Linking.openURL('/PRIVACY_POLICY.html')}
+            accessibilityLabel="Privacy Policy"
+            accessibilityRole="button"
+            accessibilityHint="Opens Klack's privacy policy in your browser"
+          >
+            <Text style={styles.actionButtonText}>
+              Privacy Policy
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => Linking.openURL('/licenses.html')}
+            accessibilityLabel="Open-source software licenses"
+            accessibilityRole="button"
+            accessibilityHint="Opens licenses of open-source software used by Klack in your browser"
+          >
+            <Text style={styles.actionButtonText}>
+              Open-source software licenses
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View>

@@ -754,7 +754,7 @@ export function DateReviewModal({
                 );
 
               const displayLocation = hasCustomLocation
-                ? (dateOptions.location || 'Location not set')
+                ? dateOptions.location
                 : (defaultLocation || 'Location not set');
 
               return (

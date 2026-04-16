@@ -71,14 +71,11 @@ export const CreatePollDetails: React.FC<CreatePollDetailsProps> = ({
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.content}>
               <Text style={styles.label}>Poll Title (Optional)</Text>
-              <Text style={styles.sublabel}>
-                Customize your poll title or keep the auto-generated name
-              </Text>
               <TextInput
                 style={styles.titleInput}
                 value={title}
                 onChangeText={setTitle}
-                placeholder={title ? "Enter a custom title or keep the default" : "Poll title will appear when games are selected"}
+                placeholder="Enter Poll Title"
                 placeholderTextColor={colors.textMuted}
                 maxLength={100}
                 accessibilityLabel="Poll title input"

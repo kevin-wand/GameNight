@@ -326,7 +326,7 @@ export default function ScoreTrackerScreen() {
                   value={roundScores[player.id] || ''}
                   onChangeText={(text) => updateRoundScore(player.id, text)}
                   placeholder=""
-                  keyboardType="numeric"
+                  keyboardType="numbers-and-punctuation"
                   maxLength={6}
                   accessibilityLabel={`Enter score for ${player.name}`}
                 />

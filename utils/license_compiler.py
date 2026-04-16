@@ -1,3 +1,5 @@
+# npx license-kit report --dev-deps-mode none --format json --output licenses.json
+
 import os
 import re
 import json
@@ -5,23 +7,20 @@ import glob
 import pprint
 import requests
 from bs4 import BeautifulSoup
-# import git
-# import shutil
 
 URL_PREFIX = 'https://github.com'
-EMPTY_DIR = './empty'
 JSON_FILENAME = '../licenses.json'
 OUTPUT_FILENAME = '../licenses.md'
 
 def make_link(text, prefix=URL_PREFIX):
-  if text.startswith(('http://', 'https://')):
+  if text.startswith(('http://', 'https://', 'github.com')):
     return text
   elif text.startswith('/'):
     return f'{prefix}{text}'
   else:
     return f'{prefix}/{text}'
 
-def get_license_from_github_url(url):
+def get_license_from_github_url(url, version=None):
   # TODO: Get the license from the correct version (some package versions are ancient)
   lics = []
   response = requests.get(make_link(url))
@@ -51,11 +50,11 @@ def make_license_md(package):
   return (
 f'''## {package['name']}
 
+Description: {package.get('description')}
 Version: {package['version']}
 {f'\nURL: {make_link(package.get('url'))}' if package.get('url') else ''}
 {f'\nAuthor: {package.get('author')}' if package.get('author') else ''}
 {f'\n\n{package.get('content')}\n\n' if package.get('content') else ''}
-Description: {package.get('description')}
 {f'\nFile: {package.get('file')}\n' if package.get('file') else ''}
 Type: {package.get('type') or 'N/A'}
 
@@ -72,10 +71,10 @@ def main():
     print(package['name'], package['version'])
     if not package.get('content'):
       package_dir = f'../node_modules/{package['name']}'
-      matches = glob.glob(f'{package_dir}/*LICENSE*')
-      if matches:
-        package['content'] = '\n\n'.join(open(match).read() for match in matches)
-        package['file'] = ', '.join(os.path.basename(match) for match in matches)
+      licenses = glob.glob(f'{package_dir}/*LICENSE*')
+      if licenses:
+        package['content'] = '\n\n'.join(open(lic).read() for lic in licenses)
+        package['file'] = ', '.join(os.path.basename(lic) for lic in licenses)
       else:
         if package.get('url'):
           package.update(get_license_from_github_url(package['url']))

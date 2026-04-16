@@ -1,9 +1,13 @@
-import { stream, Handler, HandlerEvent } from '@netlify/functions';
-
 // Adds our secret BGG authorization token to the HTTP request's headers,
 // then submits the API request to BGG, returning the response status & body.
 // Note that the API input comes from `apiString` in the URL.
 // See https://boardgamegeek.com/using_the_xml_api#toc10 for details.
+
+// TODO: Consider adding supabase login requirement,
+// to prevent abuse of our BGG API key.
+
+import { stream, Handler, HandlerEvent } from '@netlify/functions';
+
 export const handler: Handler = stream( async (event: HandlerEvent) => {
   
   const apiKey = process.env.BGG_API_AUTH_TOKEN;  // secret

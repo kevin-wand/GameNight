@@ -82,7 +82,8 @@ const getZipUrl = async () => {
     if (csvResponse.ok) {
       break;
     } else {
-      throw new Error(`Failed to fetch URL: ${csvResponse.status} - ${csvResponse.statusText}`);
+      cError(`Failed to fetch URL: ${csvResponse.status} - ${csvResponse.statusText}`);
+      continue;
     }
   }
   const html = await csvResponse.text();
@@ -371,7 +372,7 @@ const main = async () => {
 
   const csvParser = parse({ columns: true });
 
-  // Unzip boardgames_ranks_YYYY-MM-DD.zip
+  // Unzip boardgames_ranks_YYYY-MM-DD.zip and pipe to csvParser
   yauzl.fromBuffer(zipBuffer, { lazyEntries: true }, (err, zipfile) => {
     log(`Extracting ${zipFilename}...`);
     if (err) throw err;

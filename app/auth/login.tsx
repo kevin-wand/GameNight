@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,9 +98,11 @@ export default function LoginScreen() {
           <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
             <View style={styles.header}>
               <View style={styles.logoContainer}>
-                <View style={styles.logoIcon}>
-                  <Text style={styles.logoText}>👥</Text>
-                </View>
+                <Image
+                  source={require('@/assets/images/klack-logo-40x40.png')}
+                  resizeMode="contain"
+                  style={styles.logoIcon}
+                />
                 <Text style={styles.title}>Klack</Text>
               </View>
               <Text style={styles.subtitle}>
