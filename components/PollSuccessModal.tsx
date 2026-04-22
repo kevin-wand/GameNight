@@ -5,6 +5,7 @@ import { X, Share2, Users, Copy } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 
@@ -29,6 +30,7 @@ export const PollSuccessModal: React.FC<PollSuccessModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('PollSuccessModal', isVisible);
 
   const handleCopyLink = async () => {
     try {

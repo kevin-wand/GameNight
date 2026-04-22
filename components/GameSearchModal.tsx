@@ -12,6 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 import { Game } from '@/types/game';
 
@@ -45,6 +46,7 @@ export const GameSearchModal: React.FC<GameSearchModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('GameSearchModal', isVisible);
 
   const styles = useMemo(() => getStyles(colors, typography, insets, screenHeight), [colors, typography, insets, screenHeight]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -323,7 +325,9 @@ export const GameSearchModal: React.FC<GameSearchModalProps> = ({
     />
   );
 
-  if (!isVisible) return null;
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Modal

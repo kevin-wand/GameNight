@@ -9,6 +9,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 interface AddResultsModalProps {
   isVisible: boolean;
@@ -41,6 +42,7 @@ export const AddResultsModal: React.FC<AddResultsModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('AddResultsModal', isVisible);
 
   const [selectedGames, setSelectedGames] = useState<Set<number>>(new Set());
   const [databaseResults, setDatabaseResults] = useState<any[] | null>(null);

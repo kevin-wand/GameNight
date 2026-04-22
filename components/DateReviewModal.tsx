@@ -10,6 +10,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -469,6 +470,7 @@ export function DateReviewModal({
   const { isMobile, screenWidth, screenHeight } = useDeviceType();
 
   useBodyScrollLock(visible);
+  useRegisterModalSurface('DateReviewModal', visible);
   const styles = useMemo(() => getStyles(colors, typography, isMobile, screenWidth, screenHeight, insets), [colors, typography, isMobile, screenWidth, screenHeight, insets]);
 
   // ============================================================================

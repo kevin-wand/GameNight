@@ -15,6 +15,7 @@ import { fetchGames } from '@/services/bggApi';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 const sampleImage1 = require('@/assets/images/sample-game-1.png');
 
@@ -50,6 +51,8 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
     modalState,
     modalActions,
   } = useAddGameModalFlow();
+
+  useRegisterModalSurface(`AddGameModal:${modalState.step}`, isVisible);
 
   const styles = useMemo(() => getStyles(colors, typography, insets), [colors, typography, insets]);
 
@@ -383,6 +386,9 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
     );
   }
 
+  // GameSearchModal and SyncModal must live inside this Modal on iOS/Android.
+  // Sibling Modal roots stack with undefined z-order; the add-game sheet can sit
+  // above the search/sync modals so taps update state but nothing appears on screen.
   return (
     <>
       <Modal
@@ -394,25 +400,25 @@ export const AddGameModal: React.FC<AddGameModalProps> = ({
         <View style={styles.overlay}>
           {content}
         </View>
+        <GameSearchModal
+          isVisible={searchModalVisible}
+          onClose={() => setSearchModalVisible(false)}
+          mode="collection"
+          onGameAdded={handleGameAdded}
+          userCollectionIds={userCollectionIds}
+          title="Add to Collection"
+          searchPlaceholder="Search for games..."
+        />
+        <SyncModal
+          isVisible={syncModalVisible}
+          onClose={() => setSyncModalVisible(false)}
+          onSync={handleSync}
+          onUpdateProfile={handleUpdateProfile}
+          loading={syncing}
+          savedBggUsername={savedBggUsername}
+        />
       </Modal>
       {fullSizeImageModal}
-      <GameSearchModal
-        isVisible={searchModalVisible}
-        onClose={() => setSearchModalVisible(false)}
-        mode="collection"
-        onGameAdded={handleGameAdded}
-        userCollectionIds={userCollectionIds}
-        title="Add to Collection"
-        searchPlaceholder="Search for games..."
-      />
-      <SyncModal
-        isVisible={syncModalVisible}
-        onClose={() => setSyncModalVisible(false)}
-        onSync={handleSync}
-        onUpdateProfile={handleUpdateProfile}
-        loading={syncing}
-        savedBggUsername={savedBggUsername}
-      />
     </>
   );
 };

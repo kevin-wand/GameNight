@@ -18,6 +18,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 // Sample images
 const sampleImage2 = require('@/assets/images/sample-game-2.png');
@@ -42,6 +43,7 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('AddImageModal', isVisible);
 
   const [image, setImage] = useState<{
     uri: string;
