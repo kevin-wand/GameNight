@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 interface ConfirmationDialogProps {
   isVisible: boolean;
@@ -22,6 +23,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 }) => {
   const { colors, typography, touchTargets } = useTheme();
   const { announceForAccessibility } = useAccessibility();
+  useRegisterModalSurface('ConfirmationDialog', isVisible);
 
   const styles = useMemo(() => getStyles(colors, typography, touchTargets), [colors, typography, touchTargets]);
 

@@ -7,6 +7,7 @@ import ToolsFooter from '@/components/ToolsFooter';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
@@ -52,6 +53,8 @@ export default function DigitalDiceScreen() {
   const [customSides, setCustomSides] = useState('');
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  useRegisterModalSurface('DigitalDice:CustomSides', showCustomModal);
+  useRegisterModalSurface('DigitalDice:Settings', showSettings);
 
   // Load haptic setting on mount
   useEffect(() => {

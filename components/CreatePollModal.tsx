@@ -18,6 +18,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 import { Game } from '@/types/game';
 
@@ -46,6 +47,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('CreatePollModal', isVisible);
 
   const [selectedGames, setSelectedGames] = useState<Game[]>([]);
   const [availableGames, setAvailableGames] = useState<Game[]>([]);

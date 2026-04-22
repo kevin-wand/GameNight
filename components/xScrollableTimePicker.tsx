@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Platform, TextInput } from 'react-native';
 import { WheelPicker, WheelPickerWrapper, type WheelPickerOption } from '@/components/xwheel-picker';
 import { format } from 'date-fns';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 interface TimeSelection {
   hour: number;
@@ -26,6 +27,7 @@ export function ScrollableTimePicker({
   title,
   validationError
 }: ScrollableTimePickerProps) {
+  useRegisterModalSurface('ScrollableTimePicker', visible);
   const [selectedHour, setSelectedHour] = useState(6);
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');

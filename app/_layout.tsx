@@ -1,6 +1,7 @@
+import 'react-native-get-random-values';
 import 'react-native-reanimated';
 import { useEffect } from 'react';
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,6 +11,8 @@ import Toast from 'react-native-toast-message';
 import { initializeSafariFixes, persistSessionInSafari } from '@/utils/safari-polyfill';
 import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ModalSurfaceProvider } from '@/contexts/ModalSurfaceContext';
+import { RootErrorBoundary } from '@/components/RootErrorBoundary';
 import '../styles/globals.css';
 
 export default function RootLayout() {
@@ -47,19 +50,23 @@ export default function RootLayout() {
     <AuthProvider>
       <AccessibilityProvider>
         <SafeAreaProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen
-              name="(tabs)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="auth" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
-          </Stack>
-          <Toast />
-          <StatusBar
-            style={colorScheme === 'dark' ? 'light' : 'dark'}
-            backgroundColor={colorScheme === 'dark' ? '#1a2b5f' : '#ffffff'}
-          />
+          <ModalSurfaceProvider>
+            <RootErrorBoundary>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="auth" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
+              </Stack>
+              <Toast />
+              <StatusBar
+                style={colorScheme === 'dark' ? 'light' : 'dark'}
+                backgroundColor={colorScheme === 'dark' ? '#1a2b5f' : '#ffffff'}
+              />
+            </RootErrorBoundary>
+          </ModalSurfaceProvider>
         </SafeAreaProvider>
       </AccessibilityProvider>
     </AuthProvider>

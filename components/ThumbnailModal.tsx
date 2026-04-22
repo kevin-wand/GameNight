@@ -5,6 +5,7 @@ import { X } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
 interface ThumbnailModalProps {
   isVisible: boolean;
@@ -23,6 +24,7 @@ export const ThumbnailModal: React.FC<ThumbnailModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('ThumbnailModal', isVisible);
 
   const styles = useMemo(() => getStyles(colors, insets), [colors, insets]);
 

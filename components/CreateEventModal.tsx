@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 import { format, isAfter, addMonths, subMonths, startOfMonth, endOfMonth, isSameMonth, isSameDay, isBefore, startOfDay, min, max } from 'date-fns';
 import { DateReviewModal } from './DateReviewModal';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
@@ -47,6 +48,7 @@ export default function CreateEventModal({ visible, onClose, onSuccess, pollId }
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(visible);
+  useRegisterModalSurface('CreateEventModal', visible);
   const [eventName, setEventName] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [eventLocation, setEventLocation] = useState('');

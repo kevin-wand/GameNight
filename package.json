@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
     "build:web": "expo export --platform web",
+    "check:license-plist": "node scripts/check-license-plist-paths.js",
     "lint": "expo lint",
     "android": "expo run:android",
     "ios": "expo run:ios"
@@ -38,6 +39,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-get-random-values": "^2.0.0",
     "react-native-legal": "^1.6.0",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",

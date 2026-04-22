@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 import { FilterState, NumericRange, FilterOption, playerOptions, minTimeOptions, maxTimeOptions, ageOptions, typeOptions, complexityOptions } from '@/utils/filterOptions';
 
 interface FilterGameModalProps {
@@ -482,6 +483,7 @@ export const FilterGameModal: React.FC<FilterGameModalProps> = ({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
+  useRegisterModalSurface('FilterGameModal', isVisible);
 
   // Local draft state for range-based filters
   const [draftFilters, setDraftFilters] = useState<FilterState>(initialFilters || {

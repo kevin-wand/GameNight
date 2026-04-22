@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 import { useBodyScrollLock } from '@/utils/scrollLock';
+import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 import { supabase } from '@/services/supabase';
 import { validateProfileFields } from '@/utils/profanityFilter';
 
@@ -57,6 +58,7 @@ export default function EditProfileModal({
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(visible);
+  useRegisterModalSurface('EditProfileModal', visible);
 
   const styles = getStyles(colors, typography, touchTargets);
 
