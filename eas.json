@@ -11,13 +11,6 @@
         "simulator": true
       }
     },
-    "testflight": {
-      "developmentClient": false,
-      "distribution": "internal",
-      "ios": {
-        "buildConfiguration": "Release"
-      }
-    },
     "preview": {
       "distribution": "internal"
     },
@@ -27,11 +20,6 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "companyName": "Klack LLC"
-      }
-    },
-    "testflight": {
       "ios": {
         "companyName": "Klack LLC"
       }
