@@ -12,8 +12,11 @@
       }
     },
     "testflight": {
-      "developmentClient": true,
-      "distribution": "internal"
+      "developmentClient": false,
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release"
+      }
     },
     "preview": {
       "distribution": "internal"
