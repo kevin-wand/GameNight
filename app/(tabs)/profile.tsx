@@ -11,12 +11,15 @@ import { useAccessibilityContext } from '@/contexts/AccessibilityContext';
 import { supabase } from '@/services/supabase';
 import EditProfileModal from '@/components/EditProfileModal';
 
-import * as DevClient from 'expo-dev-client';
+/**
+ * Legal / licenses links use a full marketing-site origin on native (see legalPagesBaseUrl).
+ * Before publication: confirm the production domain matches where public/*.html is deployed,
+ * and update the Netlify fallback below if the app moves off klack.netlify.app (see also package.json "homepage").
+ */
 
-const discordSymbolLight = require('@/assets/images/Discord-Symbol-Blurple.svg');
-const discordSymbolDark = require('@/assets/images/Discord-Symbol-Blurple.svg');
-const bggLogoLight = require('@/assets/images/powered-by-bgg-rgb.svg');
-const bggLogoDark = require('@/assets/images/powered-by-bgg-reversed-rgb.svg');
+const discordSymbolBlurple = require('@/assets/images/discord-symbol-blurple.png');
+const bggLogoLight = require('@/assets/images/powered-by-bgg-light.png');
+const bggLogoDark = require('@/assets/images/powered-by-bgg-dark.png');
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -37,6 +40,11 @@ export default function ProfileScreen() {
   const safeAreaBottom = Platform.OS === 'web' ? 0 : insets.bottom;
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const legalPagesBaseUrl = Platform.select({
+    web: typeof window !== 'undefined' ? window.location.origin : 'https://klack.netlify.app',
+    default: 'https://klack.netlify.app',
+  });
 
   const loadUserData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -177,25 +185,6 @@ export default function ProfileScreen() {
             {isDark ? 'Light Mode' : 'Dark Mode'}
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.themeToggleButton}
-          onPress={() => DevClient.openMenu()}
-        >
-          <Text style={styles.themeToggleText}>Open Dev Menu</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.themeToggleButton}
-          onPress={() => DevClient.hideMenu()}
-        >
-          <Text style={styles.themeToggleText}>Hide Dev Menu</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.themeToggleButton}
-          onPress={() => DevClient.closeMenu()}
-        >
-          <Text style={styles.themeToggleText}>Close Dev Menu</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
@@ -231,7 +220,7 @@ export default function ProfileScreen() {
               style={[styles.iconButton, styles.iconButtonSpacing]}
             >
               <Image
-                source={isDark ? discordSymbolDark : discordSymbolLight}
+                source={isDark ? discordSymbolBlurple : discordSymbolBlurple}
                 resizeMode="contain"
                 style={styles.discordIcon}
               />
@@ -242,7 +231,7 @@ export default function ProfileScreen() {
         <View>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => Linking.openURL('/TERMS_OF_SERVICE.html')}
+            onPress={() => Linking.openURL(`${legalPagesBaseUrl}/TERMS_OF_SERVICE.html`)}
             accessibilityLabel="Terms of Service"
             accessibilityRole="button"
             accessibilityHint="Opens Klack's terms of service in your browser"
@@ -256,7 +245,7 @@ export default function ProfileScreen() {
         <View>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => Linking.openURL('/PRIVACY_POLICY.html')}
+            onPress={() => Linking.openURL(`${legalPagesBaseUrl}/PRIVACY_POLICY.html`)}
             accessibilityLabel="Privacy Policy"
             accessibilityRole="button"
             accessibilityHint="Opens Klack's privacy policy in your browser"
@@ -270,7 +259,7 @@ export default function ProfileScreen() {
         <View>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => Linking.openURL('/licenses.html')}
+            onPress={() => Linking.openURL(`${legalPagesBaseUrl}/licenses.html`)}
             accessibilityLabel="Open-source software licenses"
             accessibilityRole="button"
             accessibilityHint="Opens licenses of open-source software used by Klack in your browser"

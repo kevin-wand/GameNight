@@ -24,6 +24,11 @@ export default function RegisterProfileScreen() {
   const insets = useSafeAreaInsets();
   const { screenHeight, isDesktop } = useDeviceType();
 
+  const legalPagesBaseUrl = Platform.select({
+    web: typeof window !== 'undefined' ? window.location.origin : 'https://klack.netlify.app',
+    default: 'https://klack.netlify.app',
+  });
+
   useEffect(() => {
     // Check if we have params (new registration) or if user is authenticated (resume)
     if (params.email && params.password) {
@@ -366,7 +371,7 @@ export default function RegisterProfileScreen() {
               By clicking "Create Account" you agree to our{' '}
               <Text
                 style={styles.signInText}
-                onPress={() => Linking.openURL('/PRIVACY_POLICY.html')}
+                onPress={() => Linking.openURL(`${legalPagesBaseUrl}/PRIVACY_POLICY.html`)}
                 accessibilityLabel="Privacy Policy"
                 accessibilityRole="button"
                 accessibilityHint="Opens Klack's privacy policy in your browser"
@@ -376,7 +381,7 @@ export default function RegisterProfileScreen() {
               {' '}and acknowledge that you have read our{' '}
               <Text
                 style={styles.signInText}
-                onPress={() => Linking.openURL('/TERMS_OF_SERVICE.html')}
+                onPress={() => Linking.openURL(`${legalPagesBaseUrl}/TERMS_OF_SERVICE.html`)}
                 accessibilityLabel="Terms of Service"
                 accessibilityRole="button"
                 accessibilityHint="Opens Klack's terms of service in your browser"
