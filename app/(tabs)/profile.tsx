@@ -299,7 +299,7 @@ export default function ProfileScreen() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.infoText}>
+        <Text style={[styles.infoText, styles.footerInfoText]}>
           © 2025 Klack LLC. All rights reserved.
         </Text>
       </View>
@@ -447,6 +447,12 @@ const getStyles = (colors: any, typography: any) => StyleSheet.create({
     fontSize: typography.fontSize.subheadline,
     color: colors.textMuted,
     lineHeight: 22,
+  },
+  footerInfoText: {
+    fontFamily: typography.getFontFamily('medium'),
+    textAlign: 'center',
+    alignSelf: 'stretch',
+    paddingTop: 16,
   },
   contactContainer: {
     flexDirection: 'row',
