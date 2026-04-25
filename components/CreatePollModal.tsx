@@ -59,6 +59,7 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
   const [pollTitle, setPollTitle] = useState('');
   const [defaultTitle, setDefaultTitle] = useState('');
   const [pollDescription, setPollDescription] = useState('');
+
   // Modal states
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [isAdditionalOptionsModalVisible, setIsAdditionalOptionsModalVisible] = useState(false);
@@ -66,13 +67,6 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
   const [isGameSearchModalVisible, setIsGameSearchModalVisible] = useState(false);
   const [isPollCreatedModalVisible, setIsPollCreatedModalVisible] = useState(false);
   const [createdPollUrl, setCreatedPollUrl] = useState('');
-
-  // Legacy filter state arrays kept commented for historical context.
-  // const [playerCount, setPlayerCount] = useState<FilterOption[]>([]);
-  // const [playTime, setPlayTime] = useState<FilterOption[]>([]);
-  // const [minAge, setMinAge] = useState<FilterOption[]>([]);
-  // const [gameType, setGameType] = useState<FilterOption[]>([]);
-  // const [complexity, setComplexity] = useState<FilterOption[]>([]);
 
   const wasVisibleRef = useRef(false);
 
@@ -113,28 +107,6 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
 
     wasVisibleRef.current = isVisible;
   }, [isVisible, preselectedGames, initialFilters, setFilters, getOpenFiltersSnapshot]);
-
-  // Apply centralized filtering when inputs change
-  // useEffect(() => {
-  //   // Start with available games and remove those added via search to avoid duplicates
-  //   const baseList = availableGames.filter(game =>
-  //     !searchAddedGames.some(searchGame => searchGame.id === game.id)
-  //   );
-
-  //   // Convert legacy arrays to range-based state and apply
-  //   const converted = convertLegacyFiltersToState({
-  //     playerCount,
-  //     playTime,
-  //     minAge,
-  //     gameType,
-  //     complexity,
-  //   });
-  //   setRangeFilters(converted);
-  //   // Use enhanced filtering with bucket unions for time and age
-  //   const filtered = filterGamesWithBuckets(baseList, converted, playTime, minAge);
-  //   setFilteredGames(filtered);
-  //   // Don't automatically remove selected games when filters change
-  // }, [availableGames, searchAddedGames, playerCount, playTime, minAge, gameType, complexity, setRangeFilters]);
 
   // Apply filters to available games
   useEffect(() => {
@@ -339,26 +311,6 @@ export const CreatePollModal: React.FC<CreatePollModalProps> = ({
       }
     });
   };
-
-  // const handlePlayerCountChange = (newValue: any) => {
-  //   setPlayerCount(newValue || []);
-  // };
-
-  // const handlePlayTimeChange = (newValue: any) => {
-  //   setPlayTime(newValue || []);
-  // };
-
-  // const handleMinAgeChange = (newValue: any) => {
-  //   setMinAge(newValue || []);
-  // };
-
-  // const handleGameTypeChange = (newValue: any) => {
-  //   setGameType(newValue || []);
-  // };
-
-  // const handleComplexityChange = (newValue: any) => {
-  //   setComplexity(newValue || []);
-  // };
 
   const handlePollCreatedModalClose = () => {
     setIsPollCreatedModalVisible(false);
