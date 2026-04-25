@@ -367,8 +367,8 @@ export default function ScoreTrackerScreen() {
                   <View style={styles.scoreHeaderRow}>
                     <Text style={styles.scoreHeaderPlayer}>Player</Text>
                     <Text style={styles.scoreHeaderTotal}>Total</Text>
-                    {/* Show rounds in reverse order (latest first) */}
-                    {[...rounds].reverse().map(round => (
+                    {/* Show rounds in ascending order (R1 first) */}
+                    {rounds.map(round => (
                       <Text key={round.roundNumber} style={styles.scoreHeaderRound}>
                         R{round.roundNumber}
                       </Text>
@@ -391,8 +391,8 @@ export default function ScoreTrackerScreen() {
                           {player.total}
                         </Text>
                       </View>
-                      {/* Show scores in reverse order (latest first) */}
-                      {[...player.scores].reverse().map((score, scoreIndex) => (
+                      {/* Show scores in ascending order (R1 first) */}
+                      {player.scores.map((score, scoreIndex) => (
                         <View key={scoreIndex} style={styles.scoreRoundCell}>
                           <Text style={styles.scoreRoundText}>
                             {score}
@@ -479,16 +479,16 @@ export default function ScoreTrackerScreen() {
         <View style={styles.finalResultsSection}>
           <Text style={styles.finalResultsTitle}>Complete Results</Text>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={true}>
             <View style={styles.finalTable}>
               {/* Header */}
               <View style={styles.finalHeaderRow}>
-                <Text style={styles.finalHeaderCell}>Rank</Text>
-                <Text style={styles.finalHeaderCellPlayer}>Player</Text>
-                <Text style={styles.finalHeaderCellTotal}>Total</Text>
-                {/* Show rounds in reverse order (latest first) */}
-                {[...rounds].reverse().map(round => (
-                  <Text key={round.roundNumber} style={styles.finalHeaderCell}>
+                <Text style={styles.finalHeaderRank}>Rank</Text>
+                <Text style={styles.finalHeaderPlayer}>Player</Text>
+                <Text style={styles.finalHeaderTotal}>Total</Text>
+                {/* Show rounds in ascending order (R1 first) */}
+                {rounds.map(round => (
+                  <Text key={round.roundNumber} style={styles.finalHeaderRound}>
                     R{round.roundNumber}
                   </Text>
                 ))}
@@ -497,14 +497,20 @@ export default function ScoreTrackerScreen() {
               {/* Player Rows */}
               {sortedPlayers.map((player, index) => (
                 <View key={player.id} style={styles.finalPlayerRow}>
-                  <Text style={styles.finalRankCell}>#{index + 1}</Text>
-                  <Text style={styles.finalPlayerNameCell}>{player.name}</Text>
-                  <Text style={styles.finalTotalCell}>{player.total}</Text>
-                  {/* Show scores in reverse order (latest first) */}
-                  {[...player.scores].reverse().map((score, scoreIndex) => (
-                    <Text key={scoreIndex} style={styles.finalScoreCell}>
-                      {score}
-                    </Text>
+                  <View style={styles.finalRankCell}>
+                    <Text style={styles.finalRankText}>#{index + 1}</Text>
+                  </View>
+                  <View style={styles.finalPlayerNameCell}>
+                    <Text style={styles.finalPlayerNameText}>{player.name}</Text>
+                  </View>
+                  <View style={styles.finalTotalCell}>
+                    <Text style={styles.finalTotalText}>{player.total}</Text>
+                  </View>
+                  {/* Show scores in ascending order (R1 first) */}
+                  {player.scores.map((score, scoreIndex) => (
+                    <View key={scoreIndex} style={styles.finalScoreCell}>
+                      <Text style={styles.finalScoreText}>{score}</Text>
+                    </View>
                   ))}
                 </View>
               ))}
@@ -1074,7 +1080,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     },
     podiumScoreFirst: {
       fontFamily: typography.getFontFamily('bold'),
-      fontSize: typography.fontSize.title1,
+      fontSize: typography.fontSize.title2,
       color: colors.warning,
     },
     // 2nd Place - Left (Medium)
@@ -1102,7 +1108,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     },
     podiumScoreSecond: {
       fontFamily: typography.getFontFamily('bold'),
-      fontSize: typography.fontSize.title2,
+      fontSize: typography.fontSize.title3,
       color: colors.textMuted,
     },
     // 3rd Place - Right (Smallest)
@@ -1155,8 +1161,8 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
-    finalHeaderCell: {
-      flex: 1,
+    finalHeaderRank: {
+      width: 60,
       padding: 12,
       fontFamily: typography.getFontFamily('semibold'),
       fontSize: typography.fontSize.footnote,
@@ -1165,8 +1171,8 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
-    finalHeaderCellPlayer: {
-      flex: 2,
+    finalHeaderPlayer: {
+      width: 120,
       padding: 12,
       fontFamily: typography.getFontFamily('semibold'),
       fontSize: typography.fontSize.footnote,
@@ -1175,8 +1181,18 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
-    finalHeaderCellTotal: {
-      flex: 1,
+    finalHeaderTotal: {
+      width: 100,
+      padding: 12,
+      fontFamily: typography.getFontFamily('semibold'),
+      fontSize: typography.fontSize.footnote,
+      color: colors.text,
+      textAlign: 'center',
+      borderRightWidth: 1,
+      borderRightColor: colors.border,
+    },
+    finalHeaderRound: {
+      width: 50,
       padding: 12,
       fontFamily: typography.getFontFamily('semibold'),
       fontSize: typography.fontSize.footnote,
@@ -1192,44 +1208,60 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
       borderBottomColor: colors.border,
     },
     finalRankCell: {
-      flex: 1,
+      width: 60,
       padding: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRightWidth: 1,
+      borderRightColor: colors.border,
+    },
+    finalRankText: {
       fontFamily: typography.getFontFamily('semibold'),
       fontSize: typography.fontSize.footnote,
       color: colors.text,
       textAlign: 'center',
+    },
+    finalPlayerNameCell: {
+      width: 120,
+      padding: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
-    finalPlayerNameCell: {
-      flex: 2,
-      padding: 12,
+    finalPlayerNameText: {
       fontFamily: typography.getFontFamily('normal'),
       fontSize: typography.fontSize.footnote,
       color: colors.text,
       textAlign: 'center',
+    },
+    finalTotalCell: {
+      width: 100,
+      padding: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
-    finalTotalCell: {
-      flex: 1,
-      padding: 12,
+    finalTotalText: {
       fontFamily: typography.getFontFamily('semibold'),
       fontSize: typography.fontSize.footnote,
       color: colors.accent,
       textAlign: 'center',
+    },
+    finalScoreCell: {
+      width: 50,
+      padding: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
-    finalScoreCell: {
-      flex: 1,
-      padding: 12,
+    finalScoreText: {
       fontFamily: typography.getFontFamily('normal'),
       fontSize: typography.fontSize.footnote,
       color: colors.text,
       textAlign: 'center',
-      borderRightWidth: 1,
-      borderRightColor: colors.border,
     },
 
     // === NEW GAME BUTTON ===
