@@ -210,6 +210,7 @@ export default function FirstPlayerScreen() {
   );
 }
 function getStyles(colors: any, typography: any, touchTargets: any, insets: any) {
+  const countdownFontSize = Math.round(typography.fontSize.title1 * 4);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -376,7 +377,8 @@ function getStyles(colors: any, typography: any, touchTargets: any, insets: any)
     },
     countdownText: {
       fontFamily: typography.getFontFamily('bold'),
-      fontSize: typography.fontSize.title1,
+      fontSize: countdownFontSize,
+      lineHeight: countdownFontSize * 1.05,
       color: colors.card,
     },
     revealOverlay: {
