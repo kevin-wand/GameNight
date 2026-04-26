@@ -20,6 +20,13 @@ import { useBodyScrollLock } from '@/utils/scrollLock';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { useRegisterModalSurface } from '@/contexts/ModalSurfaceContext';
 
+/**
+ * Image analyzer requests use a full deployed origin on native (see analyzerBaseUrl).
+ * Before publication: confirm the production domain matches where `/.netlify/functions/analyze` is hosted,
+ * and update the Netlify fallback below if the app moves off klack.netlify.app
+ * (see also package.json "homepage").
+ */
+
 // Sample images
 const sampleImage2 = require('@/assets/images/sample-game-2.png');
 
@@ -40,6 +47,22 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
   const { announceForAccessibility } = useAccessibility();
   const insets = useSafeAreaInsets();
   const { screenHeight, isDesktop } = useDeviceType();
+  /*
+   to test locally
+   run 2 terminals
+   1. npx expo start --web --port 19006 (explicit port labelling here)
+      *run in dev mode (not default expo go)
+   2. netlify dev --port 8082 (or relabel the port in line 64)
+  */
+  const isWebLocalhost = Platform.OS === 'web'
+    && typeof window !== 'undefined'
+    && (window.location?.hostname === 'localhost' || window.location?.hostname === '127.0.0.1');
+  const analyzerBaseUrl = isWebLocalhost
+    ? 'http://localhost:8082'
+    : Platform.select({
+      web: typeof window !== 'undefined' ? window.location.origin : 'https://klack.netlify.app',
+      default: 'https://klack.netlify.app',
+    });
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(isVisible);
@@ -164,18 +187,8 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
       const blob = await imageData.blob();
       const base64 = await convertToBase64(blob);
 
-      const isLocalhost =
-        typeof window !== 'undefined' && window.location.hostname === 'localhost';
-      /*
-       to test locally
-       run 2 terminals
-       1. npx expo start --web --port 19006 (explicit port labelling here)
-          *run in dev mode (not default expo go)
-       2. netlify dev --port 8082 (or relabel the port in line 64)
-      */
-      const functionURL = isLocalhost
-        ? 'http://localhost:8082/.netlify/functions/analyze'
-        : '/.netlify/functions/analyze';
+      // Native requires an absolute host; relative paths are web-only and can resolve to Metro.
+      const functionURL = `${analyzerBaseUrl}/.netlify/functions/analyze`;
 
       const res = await fetch(functionURL, {
         method: 'POST',
