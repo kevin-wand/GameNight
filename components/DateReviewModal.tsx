@@ -509,6 +509,11 @@ export function DateReviewModal({
     eventLocation?.trim()
   );
 
+  const sortedSelectedDates = useMemo(
+    () => [...selectedDates].sort((a, b) => a.getTime() - b.getTime()),
+    [selectedDates]
+  );
+
   const getDateSpecificOptions = (date: Date): DateSpecificOptions => {
     const dateKey = getDateKey(date);
     return dateSpecificOptions[dateKey] || {
@@ -737,7 +742,7 @@ export function DateReviewModal({
               touchTargets={touchTargets}
             />
 
-            {selectedDates.map((date, index) => {
+            {sortedSelectedDates.map((date, index) => {
               const dateKey = getDateKey(date);
               const dateOptions = getDateSpecificOptions(date);
               const hasCustomTime = customTimeDates.has(dateKey);
