@@ -210,6 +210,7 @@ export default function FirstPlayerScreen() {
   );
 }
 function getStyles(colors: any, typography: any, touchTargets: any, insets: any) {
+  const countdownFontSize = Math.round(typography.fontSize.title1 * 4);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -376,7 +377,8 @@ function getStyles(colors: any, typography: any, touchTargets: any, insets: any)
     },
     countdownText: {
       fontFamily: typography.getFontFamily('bold'),
-      //fontSize: Math.min(120, screenWidth * 0.3),
+      fontSize: countdownFontSize,
+      lineHeight: countdownFontSize * 1.05,
       color: colors.card,
     },
     revealOverlay: {
@@ -408,14 +410,14 @@ function getStyles(colors: any, typography: any, touchTargets: any, insets: any)
     },
     revealText: {
       fontFamily: typography.getFontFamily('bold'),
-      //fontSize: Math.min(32, screenWidth * 0.08),
+      fontSize: typography.fontSize.title1,
       color: colors.text,
       textAlign: 'center',
       marginBottom: 8,
     },
     revealSubtext: {
       fontFamily: typography.getFontFamily('normal'),
-      //fontSize: Math.min(20, screenWidth * 0.05),
+      fontSize: typography.fontSize.title1,
       color: colors.textMuted,
       textAlign: 'center',
       marginBottom: 24,
