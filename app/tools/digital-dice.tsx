@@ -422,13 +422,6 @@ export default function DigitalDiceScreen() {
 
           {/* Preview */}
           <View style={styles.previewSection}>
-            <View style={styles.previewContainer}>
-              {Array.from({ length: numberOfDice }, (_, index) => (
-                <View key={index} style={styles.previewDice}>
-                  <Dice6 size={32} color="#10b981" />
-                </View>
-              ))}
-            </View>
             <Text style={styles.previewText}>
               Rolling {numberOfDice} {numberOfDice === 1 ? 'die' : 'dice'} with {sides} sides each
             </Text>
@@ -655,25 +648,10 @@ function getStyles(colors: any, typography: any, touchTargets: any, screenHeight
       marginTop: 4,
       marginBottom: 12,
     },
-    previewContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    previewDice: {
-      backgroundColor: colors.background,
-      borderRadius: 8,
-      padding: 12,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginHorizontal: 4,
-    },
     previewText: {
       fontFamily: typography.getFontFamily('semi-bold'),
       fontSize: typography.fontSize.body,
       color: colors.text,
-      paddingTop: 16,
       textAlign: 'center',
       alignSelf: 'center',
     },

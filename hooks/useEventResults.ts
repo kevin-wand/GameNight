@@ -12,6 +12,7 @@ interface EventVotes {
 interface EventDateResult {
   date: PollEvent;
   ranking: number;
+  isTied?: boolean;
   totalScore: number;
   totalVotes: number;
   voteCounts: { yes: number; no: number; maybe: number };
@@ -229,17 +230,33 @@ export const useEventResults = (eventId: string | string[] | undefined) => {
             };
           });
 
-          // Sort by score (descending) and assign rankings
+          // Sort by score (descending) and assign competition rankings (1, 1, 3)
           dateScores.sort((a, b) => b.totalScore - a.totalScore);
 
-          const results: EventDateResult[] = dateScores.map((item, index) => ({
-            date: item.date,
-            ranking: index + 1,
-            totalScore: item.totalScore,
-            totalVotes: item.totalVotes,
-            voteCounts: item.voteCounts,
-            votes: item.votes
-          }));
+          const scoreCounts: Record<number, number> = {};
+          dateScores.forEach((item) => {
+            scoreCounts[item.totalScore] = (scoreCounts[item.totalScore] || 0) + 1;
+          });
+
+          let currentRank = 1;
+          let lastScore: number | null = null;
+
+          const results: EventDateResult[] = dateScores.map((item, index) => {
+            if (lastScore !== null && item.totalScore !== lastScore) {
+              currentRank = index + 1;
+            }
+            lastScore = item.totalScore;
+
+            return {
+              date: item.date,
+              ranking: currentRank,
+              isTied: scoreCounts[item.totalScore] > 1,
+              totalScore: item.totalScore,
+              totalVotes: item.totalVotes,
+              voteCounts: item.voteCounts,
+              votes: item.votes
+            };
+          });
 
           return results;
         } catch (err) {

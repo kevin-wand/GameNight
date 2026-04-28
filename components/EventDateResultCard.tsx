@@ -18,6 +18,7 @@ interface EventDateResultCardProps {
   eventDate: {
     date: PollEvent;
     ranking: number;
+    isTied?: boolean;
     totalScore: number;
     totalVotes: number;
     voteCounts: { yes: number; no: number; maybe: number };
@@ -41,7 +42,7 @@ export function EventDateResultCard({
 
   // Ensure votes exists
   if (!votes) {
-    console.warn('Event votes is undefined for date:', eventDate.id);
+    console.warn('Event votes is undefined for date:', eventDate.date?.id ?? 'unknown');
     return (
       <View style={styles.card}>
         <Text style={styles.dateText}>Vote data unavailable</Text>
@@ -103,6 +104,11 @@ export function EventDateResultCard({
           <Text style={styles.rankingText}>
             #{eventDate.ranking}
           </Text>
+          {eventDate.isTied && (
+            <Text style={styles.tiedText}>
+              (tied)
+            </Text>
+          )}
         </View>
       </View>
 
@@ -244,6 +250,14 @@ const getStyles = (colors: any, typography: any) => StyleSheet.create({
     fontFamily: typography.getFontFamily('bold'),
     fontSize: typography.fontSize.callout,
     color: colors.accent,
+  },
+  tiedText: {
+    fontFamily: typography.getFontFamily('semibold'),
+    fontSize: typography.fontSize.caption2,
+    color: colors.accent,
+    marginTop: 2,
+    lineHeight: typography.lineHeight.tight * typography.fontSize.caption2,
+    textAlign: 'center',
   },
   votesContainer: {
     flexDirection: 'row',
