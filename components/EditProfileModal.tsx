@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Pressable,
+  Keyboard,
 } from 'react-native';
 import { X, Save } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,6 +57,9 @@ export default function EditProfileModal({
   const { colors, typography, touchTargets } = useTheme();
   const { announceForAccessibility } = useAccessibility();
   const insets = useSafeAreaInsets();
+  const firstNameInputRef = useRef<TextInput>(null);
+  const lastNameInputRef = useRef<TextInput>(null);
+  const bggUsernameInputRef = useRef<TextInput>(null);
 
   // Lock body scroll on web when modal is visible
   useBodyScrollLock(visible);
@@ -102,6 +107,7 @@ export default function EditProfileModal({
   };
 
   const handleSave = async () => {
+    Keyboard.dismiss();
     try {
       setError(null);
 
@@ -174,9 +180,10 @@ export default function EditProfileModal({
     >
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}
       >
-        <View style={styles.sheetContainer}>
+        <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+          <View style={styles.sheetContainer}>
           <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
             <TouchableOpacity
               style={styles.closeButton}
@@ -198,7 +205,11 @@ export default function EditProfileModal({
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.form}>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Username *</Text>
@@ -212,6 +223,9 @@ export default function EditProfileModal({
                   autoCorrect={false}
                   maxLength={20}
                   editable={!loading}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => firstNameInputRef.current?.focus()}
                 />
                 {isCheckingUsername && (
                   <Text style={styles.checkingText}>Checking availability...</Text>
@@ -221,6 +235,7 @@ export default function EditProfileModal({
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>First Name</Text>
                 <TextInput
+                  ref={firstNameInputRef}
                   style={styles.input}
                   value={firstName}
                   onChangeText={setFirstName}
@@ -229,12 +244,16 @@ export default function EditProfileModal({
                   autoCapitalize="words"
                   maxLength={50}
                   editable={!loading}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => lastNameInputRef.current?.focus()}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Last Name</Text>
                 <TextInput
+                  ref={lastNameInputRef}
                   style={styles.input}
                   value={lastName}
                   onChangeText={setLastName}
@@ -243,12 +262,16 @@ export default function EditProfileModal({
                   autoCapitalize="words"
                   maxLength={50}
                   editable={!loading}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => bggUsernameInputRef.current?.focus()}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>BGG Username (Optional)</Text>
                 <TextInput
+                  ref={bggUsernameInputRef}
                   style={styles.input}
                   value={bggUsername}
                   onChangeText={setBggUsername}
@@ -258,6 +281,8 @@ export default function EditProfileModal({
                   autoCorrect={false}
                   maxLength={50}
                   editable={!loading}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSave}
                 />
               </View>
 
@@ -294,7 +319,8 @@ export default function EditProfileModal({
               </View>
             </View>
           </ScrollView>
-        </View>
+          </View>
+        </Pressable>
       </KeyboardAvoidingView>
     </Modal>
   );
