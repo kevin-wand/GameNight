@@ -9,8 +9,8 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   ScrollView,
-  Pressable,
   Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react-native';
@@ -314,12 +314,13 @@ export default function UpdatePasswordScreen() {
       keyboardVerticalOffset={insets.top + 20}
       style={{ flex: 1 }}
     >
-      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           >
             <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
               <View style={styles.header}>
@@ -445,7 +446,7 @@ export default function UpdatePasswordScreen() {
             </View>
           </ScrollView>
         </View>
-      </Pressable>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

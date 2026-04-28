@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Pressable, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,9 +33,10 @@ export default function RegisterScreen() {
     try {
       setLoading(true);
       setError(null);
+      const normalizedEmail = email.trim().toLowerCase();
 
       // Basic validation
-      if (!email || !password) {
+      if (!normalizedEmail || !password) {
         setError('Please fill in all fields');
         return;
       }
@@ -58,8 +59,39 @@ export default function RegisterScreen() {
 
       // Email format validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!emailRegex.test(normalizedEmail)) {
         setError('Please enter a valid email address');
+        return;
+      }
+
+      // Check whether this email already has an account before proceeding
+      const { error: emailCheckError } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+
+      if (!emailCheckError) {
+        setError('This email is already registered. Please sign in instead.');
+        return;
+      }
+
+      const emailCheckMessage = emailCheckError.message.toLowerCase();
+      const isUnregisteredEmail = emailCheckMessage.includes('signups not allowed for otp');
+
+      if (!isUnregisteredEmail) {
+        if (emailCheckError.status === 429 || emailCheckMessage.includes('rate limit')) {
+          setError('Too many attempts. Please wait a moment and try again.');
+          return;
+        }
+
+        if (emailCheckError.status && emailCheckError.status >= 500) {
+          setError('Server error. Please try again later.');
+          return;
+        }
+
+        setError('Unable to validate email right now. Please try again.');
         return;
       }
 
@@ -68,7 +100,7 @@ export default function RegisterScreen() {
       router.push({
         pathname: '/auth/register-profile',
         params: {
-          email,
+          email: normalizedEmail,
           password,
         }
       });
@@ -85,12 +117,13 @@ export default function RegisterScreen() {
       keyboardVerticalOffset={insets.top + 20}
       style={{ flex: 1 }}
     >
-      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           >
             <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
               <View style={styles.header}>
@@ -227,7 +260,7 @@ export default function RegisterScreen() {
             </View>
           </ScrollView>
         </View>
-      </Pressable>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
