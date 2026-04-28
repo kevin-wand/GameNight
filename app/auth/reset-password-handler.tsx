@@ -1,21 +1,18 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
+import { CheckCircle, XCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/services/supabase';
 import { useTheme } from '@/hooks/useTheme';
-import { useDeviceType } from '@/hooks/useDeviceType';
-
 export default function ResetPasswordHandler() {
   const router = useRouter();
   const [logs, setLogs] = useState<string[]>([]);
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [statusMessage, setStatusMessage] = useState('Processing password reset...');
-  const { colors, typography, touchTargets, isDark } = useTheme();
+  const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
-  const { screenHeight } = useDeviceType();
 
   const styles = getStyles(colors, typography);
 
@@ -143,9 +140,8 @@ export default function ResetPasswordHandler() {
   }, [router]);
 
   return (
-    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top + 20} style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
+    <View style={styles.container}>
+      <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
           {/*<View style={styles.header}>
              <View style={styles.logoContainer}>
               <View style={styles.logoIcon}>
@@ -196,9 +192,8 @@ export default function ResetPasswordHandler() {
               </View>
             )}
           </View>
-        </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

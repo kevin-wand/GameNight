@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Pressable, Keyboard } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Mail, MailCheck } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +21,9 @@ export default function ResetPasswordScreen() {
   const { screenHeight } = useDeviceType();
 
   const styles = getStyles(colors, typography, isDark, screenHeight);
+
+  const keyboardAvoidingBehavior =
+    Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
   const getBaseUrl = () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -55,6 +58,7 @@ export default function ResetPasswordScreen() {
   }, [params.error]);
 
   const handleResetPassword = async () => {
+    Keyboard.dismiss();
     try {
       setLoading(true);
       setError(null);
@@ -126,13 +130,19 @@ export default function ResetPasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top + 20} style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
+    <KeyboardAvoidingView
+      behavior={keyboardAvoidingBehavior}
+      keyboardVerticalOffset={insets.top + 20}
+      style={{ flex: 1 }}
+    >
+      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
             <View style={styles.header}>
               <View style={styles.logoContainer}>
                 <View style={styles.logoIcon}>
@@ -162,6 +172,8 @@ export default function ResetPasswordScreen() {
                     autoCapitalize="none"
                     keyboardType="email-address"
                     autoComplete="email"
+                    returnKeyType="send"
+                    onSubmitEditing={handleResetPassword}
                     accessibilityLabel="Email address"
                     accessibilityHint="Enter your email address to receive reset link"
                   />
@@ -204,9 +216,10 @@ export default function ResetPasswordScreen() {
                 <Text style={styles.backText}>Back to Login</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </ScrollView>
-      </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }

@@ -1,5 +1,17 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  ScrollView,
+  Pressable,
+  Keyboard,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +40,10 @@ export default function UpdatePasswordScreen() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   const styles = getStyles(colors, typography, isDark);
+  const confirmPasswordInputRef = useRef<TextInput>(null);
+
+  const keyboardAvoidingBehavior =
+    Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
   // Check authentication status on mount
   useEffect(() => {
@@ -123,7 +139,7 @@ export default function UpdatePasswordScreen() {
 
   if (checkingAuth) {
     return (
-      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top + 20} style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <View style={styles.container}>
           <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
             <View style={styles.header}>
@@ -151,13 +167,13 @@ export default function UpdatePasswordScreen() {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top + 20} style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <View style={styles.container}>
           <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
             <View style={styles.header}>
@@ -201,7 +217,7 @@ export default function UpdatePasswordScreen() {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     );
   }
 
@@ -216,6 +232,7 @@ export default function UpdatePasswordScreen() {
   };
 
   const handleUpdatePassword = async () => {
+    Keyboard.dismiss();
     // Add haptic feedback for mobile
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -292,125 +309,143 @@ export default function UpdatePasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top + 20} style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logoIcon}>
-                <Text style={styles.logoText}>👥</Text>
+    <KeyboardAvoidingView
+      behavior={keyboardAvoidingBehavior}
+      keyboardVerticalOffset={insets.top + 20}
+      style={{ flex: 1 }}
+    >
+      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
+              <View style={styles.header}>
+                <View style={styles.logoContainer}>
+                  <View style={styles.logoIcon}>
+                    <Text style={styles.logoText}>👥</Text>
+                  </View>
+                  <Text style={styles.title}>Klack</Text>
+                </View>
+                <Text style={styles.subtitle}>
+                  The ultimate tool for organizing your next game night
+                </Text>
               </View>
-              <Text style={styles.title}>Klack</Text>
-            </View>
-            <Text style={styles.subtitle}>
-              The ultimate tool for organizing your next game night
-            </Text>
-          </View>
 
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Set New Password</Text>
-            <Text style={styles.formSubtitle}>Enter your new password below</Text>
+              <View style={styles.formContainer}>
+                <Text style={styles.formTitle}>Set New Password</Text>
+                <Text style={styles.formSubtitle}>Enter your new password below</Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>New Password</Text>
-              <View style={styles.inputWrapper}>
-                {/* <Lock color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter new password"
-                  placeholderTextColor={colors.textMuted}
-                  secureTextEntry={!showPassword}
-                  autoComplete="new-password"
-                  accessibilityLabel="New password"
-                  accessibilityHint="Enter your new password"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>New Password</Text>
+                  <View style={styles.inputWrapper}>
+                    {/* <Lock color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
+                    <TextInput
+                      style={styles.input}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Enter new password"
+                      placeholderTextColor={colors.textMuted}
+                      secureTextEntry={!showPassword}
+                      autoComplete="new-password"
+                      returnKeyType="next"
+                      submitBehavior="submit"
+                      onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
+                      accessibilityLabel="New password"
+                      accessibilityHint="Enter your new password"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeIcon}
+                      hitSlop={touchTargets.standard}
+                      accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                      accessibilityRole="button"
+                    >
+                      {showPassword ? (
+                        <EyeOff color={colors.textMuted} size={20} />
+                      ) : (
+                        <Eye color={colors.textMuted} size={20} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Confirm Password</Text>
+                  <View style={styles.inputWrapper}>
+                    {/* <Lock color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
+                    <TextInput
+                      ref={confirmPasswordInputRef}
+                      style={styles.input}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      placeholder="Confirm new password"
+                      placeholderTextColor={colors.textMuted}
+                      secureTextEntry={!showConfirmPassword}
+                      autoComplete="new-password"
+                      returnKeyType="done"
+                      onSubmitEditing={handleUpdatePassword}
+                      accessibilityLabel="Confirm password"
+                      accessibilityHint="Confirm your new password"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={styles.eyeIcon}
+                      hitSlop={touchTargets.standard}
+                      accessibilityLabel={showConfirmPassword ? "Hide password" : "Show password"}
+                      accessibilityRole="button"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff color={colors.textMuted} size={20} />
+                      ) : (
+                        <Eye color={colors.textMuted} size={20} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {error && (
+                  <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
+                )}
+
+                {success && (
+                  <View style={styles.successContainer}>
+                    <CheckCircle color={colors.success} size={20} style={styles.successIcon} />
+                    <Text style={styles.successText}>Password updated! Redirecting to login...</Text>
+                  </View>
+                )}
+
                 <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIcon}
+                  style={[styles.button, loading && styles.buttonDisabled]}
                   hitSlop={touchTargets.standard}
-                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                  onPress={handleUpdatePassword}
+                  disabled={loading}
+                  accessibilityLabel={loading ? "Updating password" : "Update password"}
                   accessibilityRole="button"
                 >
-                  {showPassword ? (
-                    <EyeOff color={colors.textMuted} size={20} />
-                  ) : (
-                    <Eye color={colors.textMuted} size={20} />
-                  )}
+                  <Lock color={colors.card} size={20} />
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Updating...' : 'Update Password'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.backButton}
+                  hitSlop={touchTargets.standard}
+                  onPress={() => router.replace('/auth/login')}
+                  accessibilityLabel="Back to login"
+                  accessibilityRole="button"
+                >
+                  <ArrowLeft color={colors.textMuted} size={20} />
+                  <Text style={styles.backText}>Back to Login</Text>
                 </TouchableOpacity>
               </View>
             </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <View style={styles.inputWrapper}>
-                {/* <Lock color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
-                <TextInput
-                  style={styles.input}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Confirm new password"
-                  placeholderTextColor={colors.textMuted}
-                  secureTextEntry={!showConfirmPassword}
-                  autoComplete="new-password"
-                  accessibilityLabel="Confirm password"
-                  accessibilityHint="Confirm your new password"
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={styles.eyeIcon}
-                  hitSlop={touchTargets.standard}
-                  accessibilityLabel={showConfirmPassword ? "Hide password" : "Show password"}
-                  accessibilityRole="button"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff color={colors.textMuted} size={20} />
-                  ) : (
-                    <Eye color={colors.textMuted} size={20} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {error && (
-              <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
-            )}
-
-            {success && (
-              <View style={styles.successContainer}>
-                <CheckCircle color={colors.success} size={20} style={styles.successIcon} />
-                <Text style={styles.successText}>Password updated! Redirecting to login...</Text>
-              </View>
-            )}
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              hitSlop={touchTargets.standard}
-              onPress={handleUpdatePassword}
-              disabled={loading}
-              accessibilityLabel={loading ? "Updating password" : "Update password"}
-              accessibilityRole="button"
-            >
-              <Lock color={colors.card} size={20} />
-              <Text style={styles.buttonText}>
-                {loading ? 'Updating...' : 'Update Password'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.backButton}
-              hitSlop={touchTargets.standard}
-              onPress={() => router.replace('/auth/login')}
-              accessibilityLabel="Back to login"
-              accessibilityRole="button"
-            >
-              <ArrowLeft color={colors.textMuted} size={20} />
-              <Text style={styles.backText}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
-      </View>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }

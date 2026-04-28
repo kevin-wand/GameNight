@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image } from 'react-native';
+import { useState, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Pressable, Keyboard } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,8 +20,13 @@ export default function LoginScreen() {
   const { screenHeight } = useDeviceType();
 
   const styles = getStyles(colors, typography, isDark, screenHeight);
+  const passwordInputRef = useRef<TextInput>(null);
+
+  const keyboardAvoidingBehavior =
+    Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
     try {
       setLoading(true);
       setError(null);
@@ -89,116 +94,129 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top + 20} style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
-            <View style={styles.header}>
-              <View style={styles.logoContainer}>
-                <Image
-                  source={require('@/assets/images/klack-logo-40x40.png')}
-                  resizeMode="contain"
-                  style={styles.logoIcon}
-                />
-                <Text style={styles.title}>Klack</Text>
-              </View>
-              <Text style={styles.subtitle}>
-                The ultimate tool for organizing your next game night
-              </Text>
-            </View>
-
-            <View style={styles.formContainer}>
-              <Text style={styles.formTitle}>Log In</Text>
-              <Text style={styles.formSubtitle}>Sign in to your account</Text>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <View style={styles.inputWrapper}>
-                  {/* <Mail color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
-                  <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email address"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    accessibilityLabel="Email address"
-                    accessibilityHint="Enter your email address"
+    <KeyboardAvoidingView
+      behavior={keyboardAvoidingBehavior}
+      keyboardVerticalOffset={insets.top + 20}
+      style={{ flex: 1 }}
+    >
+      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
+              <View style={styles.header}>
+                <View style={styles.logoContainer}>
+                  <Image
+                    source={require('@/assets/images/klack-logo-40x40.png')}
+                    resizeMode="contain"
+                    style={styles.logoIcon}
                   />
+                  <Text style={styles.title}>Klack</Text>
                 </View>
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.inputWrapper}>
-                  {/* <Lock color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
-                  <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Enter your password"
-                    placeholderTextColor={colors.textMuted}
-                    secureTextEntry={!showPassword}
-                    accessibilityLabel="Password"
-                    accessibilityHint="Enter your password"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                    hitSlop={touchTargets.standard}
-                    accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                    accessibilityRole="button"
-                  >
-                    {showPassword ? (
-                      <EyeOff color={colors.textMuted} size={20} />
-                    ) : (
-                      <Eye color={colors.textMuted} size={20} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {error && (
-                <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
-              )}
-
-              <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                hitSlop={touchTargets.standard}
-                onPress={handleLogin}
-                disabled={loading}
-                accessibilityLabel={loading ? "Signing in" : "Sign in"}
-                accessibilityRole="button"
-              >
-                <LogIn color={colors.card} size={20} />
-                <Text style={styles.buttonText}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                <Text style={styles.subtitle}>
+                  The ultimate tool for organizing your next game night
                 </Text>
-              </TouchableOpacity>
+              </View>
 
-              <Link href="/auth/reset-password" asChild>
-                <TouchableOpacity style={styles.forgotPasswordLink} hitSlop={touchTargets.standard}>
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot your password?
+              <View style={styles.formContainer}>
+                <Text style={styles.formTitle}>Log In</Text>
+                <Text style={styles.formSubtitle}>Sign in to your account</Text>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
+                  <View style={styles.inputWrapper}>
+                    {/* <Mail color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
+                    <TextInput
+                      style={styles.input}
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="Enter your email address"
+                      placeholderTextColor={colors.textMuted}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      returnKeyType="next"
+                      submitBehavior="submit"
+                      onSubmitEditing={() => passwordInputRef.current?.focus()}
+                      accessibilityLabel="Email address"
+                      accessibilityHint="Enter your email address"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Password</Text>
+                  <View style={styles.inputWrapper}>
+                    {/* <Lock color={colors.textMuted} size={20} style={styles.inputIcon} /> */}
+                    <TextInput
+                      ref={passwordInputRef}
+                      style={styles.input}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Enter your password"
+                      placeholderTextColor={colors.textMuted}
+                      secureTextEntry={!showPassword}
+                      returnKeyType="done"
+                      onSubmitEditing={handleLogin}
+                      accessibilityLabel="Password"
+                      accessibilityHint="Enter your password"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeIcon}
+                      hitSlop={touchTargets.standard}
+                      accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                      accessibilityRole="button"
+                    >
+                      {showPassword ? (
+                        <EyeOff color={colors.textMuted} size={20} />
+                      ) : (
+                        <Eye color={colors.textMuted} size={20} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {error && (
+                  <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
+                )}
+
+                <TouchableOpacity
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  hitSlop={touchTargets.standard}
+                  onPress={handleLogin}
+                  disabled={loading}
+                  accessibilityLabel={loading ? "Signing in" : "Sign in"}
+                  accessibilityRole="button"
+                >
+                  <LogIn color={colors.card} size={20} />
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Signing in...' : 'Sign In'}
                   </Text>
                 </TouchableOpacity>
-              </Link>
 
-              <Link href="/auth/register" asChild>
-                <TouchableOpacity style={styles.registerLink} hitSlop={touchTargets.standard}>
-                  <Text style={styles.registerText}>
-                    Don't have an account? <Text style={styles.signInText}>Create one</Text>
-                  </Text>
-                </TouchableOpacity>
-              </Link>
+                <Link href="/auth/reset-password" asChild>
+                  <TouchableOpacity style={styles.forgotPasswordLink} hitSlop={touchTargets.standard}>
+                    <Text style={styles.forgotPasswordText}>
+                      Forgot your password?
+                    </Text>
+                  </TouchableOpacity>
+                </Link>
+
+                <Link href="/auth/register" asChild>
+                  <TouchableOpacity style={styles.registerLink} hitSlop={touchTargets.standard}>
+                    <Text style={styles.registerText}>
+                      Don't have an account? <Text style={styles.signInText}>Create one</Text>
+                    </Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </View>
+          </ScrollView>
+        </View>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }

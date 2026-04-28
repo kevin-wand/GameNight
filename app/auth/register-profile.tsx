@@ -1,5 +1,18 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, Linking } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Linking,
+  ScrollView,
+  Pressable,
+  Keyboard,
+} from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { ArrowLeft, User, UserPlus } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
@@ -23,6 +36,11 @@ export default function RegisterProfileScreen() {
   const { colors, typography, touchTargets, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { screenHeight, isDesktop } = useDeviceType();
+  const firstNameInputRef = useRef<TextInput>(null);
+  const lastNameInputRef = useRef<TextInput>(null);
+
+  const keyboardAvoidingBehavior =
+    Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
   const legalPagesBaseUrl = Platform.select({
     web: typeof window !== 'undefined' ? window.location.origin : 'https://klack.netlify.app',
@@ -54,6 +72,7 @@ export default function RegisterProfileScreen() {
   }, [params, router]);
 
   const handleCreateAccount = async () => {
+    Keyboard.dismiss();
     try {
       setLoading(true);
       setError(null);
@@ -238,10 +257,20 @@ export default function RegisterProfileScreen() {
   const styles = getStyles(colors, typography, isDark);
 
   return (
-    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={insets.top} style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={[styles.contentWrapper, { paddingTop: insets.top }]}>
-          {/*<View style={styles.header}>
+    <KeyboardAvoidingView
+      behavior={keyboardAvoidingBehavior}
+      keyboardVerticalOffset={insets.top}
+      style={{ flex: 1 }}
+    >
+      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.contentWrapper, { paddingTop: insets.top }]}>
+              {/*<View style={styles.header}>
             <View style={styles.logoContainer}>
               <View style={styles.logoIcon}>
                 <Text style={styles.logoText}>👥</Text>
@@ -253,70 +282,80 @@ export default function RegisterProfileScreen() {
             </Text>
           </View>*/}
 
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>
-              {isResume ? 'Complete Your Registration' : 'Complete Profile'}
-            </Text>
-            {isResume && (
-              <Text style={styles.resumeMessage}>
-                Welcome back! Please complete your profile to finish setting up your account.
-              </Text>
-            )}
-            <Text style={styles.formSubtitle}>Tell us a bit about yourself</Text>
+              <View style={styles.formContainer}>
+                <Text style={styles.formTitle}>
+                  {isResume ? 'Complete Your Registration' : 'Complete Profile'}
+                </Text>
+                {isResume && (
+                  <Text style={styles.resumeMessage}>
+                    Welcome back! Please complete your profile to finish setting up your account.
+                  </Text>
+                )}
+                <Text style={styles.formSubtitle}>Tell us a bit about yourself</Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Username *</Text>
-              <View style={styles.inputWrapper}>
-                <User color={colors.textMuted} size={20} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.inputUsername}
-                  value={username}
-                  onChangeText={setUsername}
-                  placeholder="Choose a username"
-                  placeholderTextColor={colors.textMuted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  textContentType="username"
-                  accessibilityLabel="Username"
-                  accessibilityHint="Enter a unique username"
-                />
-              </View>
-            </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Username *</Text>
+                  <View style={styles.inputWrapper}>
+                    <User color={colors.textMuted} size={20} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.inputUsername}
+                      value={username}
+                      onChangeText={setUsername}
+                      placeholder="Choose a username"
+                      placeholderTextColor={colors.textMuted}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      textContentType="username"
+                      returnKeyType="next"
+                      submitBehavior="submit"
+                      onSubmitEditing={() => firstNameInputRef.current?.focus()}
+                      accessibilityLabel="Username"
+                      accessibilityHint="Enter a unique username"
+                    />
+                  </View>
+                </View>
 
-            <View style={styles.nameRow}>
-              <View style={[styles.inputContainer, styles.nameInput]}>
-                <Text style={styles.label}>First Name</Text>
-                <TextInput
-                  style={styles.inputRealName}
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder="Optional"
-                  placeholderTextColor={colors.textMuted}
-                  autoCapitalize="words"
-                  textContentType="givenName"
-                  accessibilityLabel="First name"
-                  accessibilityHint="Optional"
-                />
-              </View>
-              <View style={[styles.inputContainer, styles.nameInput]}>
-                <Text style={styles.label}>Last Name</Text>
-                <TextInput
-                  style={styles.inputRealName}
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder="Optional"
-                  placeholderTextColor={colors.textMuted}
-                  autoCapitalize="words"
-                  textContentType="familyName"
-                  accessibilityLabel="Last name"
-                  accessibilityHint="Optional"
-                />
-              </View>
-            </View>
+                <View style={styles.nameRow}>
+                  <View style={[styles.inputContainer, styles.nameInput]}>
+                    <Text style={styles.label}>First Name</Text>
+                    <TextInput
+                      ref={firstNameInputRef}
+                      style={styles.inputRealName}
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      placeholder="Optional"
+                      placeholderTextColor={colors.textMuted}
+                      autoCapitalize="words"
+                      textContentType="givenName"
+                      returnKeyType="next"
+                      submitBehavior="submit"
+                      onSubmitEditing={() => lastNameInputRef.current?.focus()}
+                      accessibilityLabel="First name"
+                      accessibilityHint="Optional"
+                    />
+                  </View>
+                  <View style={[styles.inputContainer, styles.nameInput]}>
+                    <Text style={styles.label}>Last Name</Text>
+                    <TextInput
+                      ref={lastNameInputRef}
+                      style={styles.inputRealName}
+                      value={lastName}
+                      onChangeText={setLastName}
+                      placeholder="Optional"
+                      placeholderTextColor={colors.textMuted}
+                      autoCapitalize="words"
+                      textContentType="familyName"
+                      returnKeyType="done"
+                      onSubmitEditing={handleCreateAccount}
+                      accessibilityLabel="Last name"
+                      accessibilityHint="Optional"
+                    />
+                  </View>
+                </View>
 
-            {!isDesktop && <View style={styles.spacer} />}
+                {!isDesktop && <View style={styles.spacer} />}
 
-            {/* <TouchableOpacity
+                {/* <TouchableOpacity
               style={styles.privacyNotice}
               onPress={() => setPrivacyExpanded(!privacyExpanded)}
               accessibilityRole="button"
@@ -336,71 +375,73 @@ export default function RegisterProfileScreen() {
               )}
             </TouchableOpacity> */}
 
-            {error && (
-              <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
-            )}
+                {error && (
+                  <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
+                )}
 
-            <TouchableOpacity
-              style={[styles.createButton, loading && styles.buttonDisabled]}
-              onPress={handleCreateAccount}
-              disabled={loading}
-              accessibilityRole="button"
-              accessibilityLabel={loading ? 'Creating account' : 'Create account'}
-              accessibilityHint="Creates your profile and continues"
-            >
-              <UserPlus color={colors.card} size={20} />
-              <Text style={styles.createButtonText}>
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.createButton, loading && styles.buttonDisabled]}
+                  onPress={handleCreateAccount}
+                  disabled={loading}
+                  accessibilityRole="button"
+                  accessibilityLabel={loading ? 'Creating account' : 'Create account'}
+                  accessibilityHint="Creates your profile and continues"
+                >
+                  <UserPlus color={colors.card} size={20} />
+                  <Text style={styles.createButtonText}>
+                    {loading ? 'Creating Account...' : 'Create Account'}
+                  </Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.backButton, loading && styles.buttonDisabled]}
-              onPress={handleBack}
-              disabled={loading}
-              hitSlop={touchTargets.standard}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              accessibilityHint="Go back to sign in"
-            >
-              <ArrowLeft color={colors.textMuted} size={20} />
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.backButton, loading && styles.buttonDisabled]}
+                  onPress={handleBack}
+                  disabled={loading}
+                  hitSlop={touchTargets.standard}
+                  accessibilityRole="button"
+                  accessibilityLabel="Back"
+                  accessibilityHint="Go back to sign in"
+                >
+                  <ArrowLeft color={colors.textMuted} size={20} />
+                  <Text style={styles.backButtonText}>Back</Text>
+                </TouchableOpacity>
 
-            <Text style={styles.loginText}>
-              By clicking "Create Account" you agree to our{' '}
-              <Text
-                style={styles.signInText}
-                onPress={() => Linking.openURL(`${legalPagesBaseUrl}/PRIVACY_POLICY.html`)}
-                accessibilityLabel="Privacy Policy"
-                accessibilityRole="button"
-                accessibilityHint="Opens Klack's privacy policy in your browser"
-              >
-                privacy policy
-              </Text>
-              {' '}and acknowledge that you have read our{' '}
-              <Text
-                style={styles.signInText}
-                onPress={() => Linking.openURL(`${legalPagesBaseUrl}/TERMS_OF_SERVICE.html`)}
-                accessibilityLabel="Terms of Service"
-                accessibilityRole="button"
-                accessibilityHint="Opens Klack's terms of service in your browser"
-              >
-                terms of service
-              </Text>
-              .
-            </Text>
+                <Text style={styles.loginText}>
+                  By clicking "Create Account" you agree to our{' '}
+                  <Text
+                    style={styles.signInText}
+                    onPress={() => Linking.openURL(`${legalPagesBaseUrl}/PRIVACY_POLICY.html`)}
+                    accessibilityLabel="Privacy Policy"
+                    accessibilityRole="button"
+                    accessibilityHint="Opens Klack's privacy policy in your browser"
+                  >
+                    privacy policy
+                  </Text>
+                  {' '}and acknowledge that you have read our{' '}
+                  <Text
+                    style={styles.signInText}
+                    onPress={() => Linking.openURL(`${legalPagesBaseUrl}/TERMS_OF_SERVICE.html`)}
+                    accessibilityLabel="Terms of Service"
+                    accessibilityRole="button"
+                    accessibilityHint="Opens Klack's terms of service in your browser"
+                  >
+                    terms of service
+                  </Text>
+                  .
+                </Text>
 
-            {/* <Link href="/auth/login" asChild>
+                {/* <Link href="/auth/login" asChild>
               <TouchableOpacity style={styles.loginLink} hitSlop={touchTargets.standard}>
                 <Text style={styles.loginText}>
                   Already have an account? <Text style={styles.signInText}>Sign in</Text>
                 </Text>
               </TouchableOpacity>
             </Link> */}
-          </View>
+              </View>
+            </View>
+          </ScrollView>
         </View>
-      </View>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }
