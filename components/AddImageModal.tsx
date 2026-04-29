@@ -565,9 +565,9 @@ export const AddImageModal: React.FC<AddImageModalProps> = ({
         <View style={styles.overlay}>
           {content}
         </View>
+        {instructionsModal}
       </Modal>
       {fullSizeImageModal}
-      {instructionsModal}
     </>
   );
 };
@@ -587,7 +587,7 @@ async function convertToBase64(blob: Blob): Promise<string> {
 }
 
 const getStyles = (colors: any, typography: any, insets: any, screenHeight: number) => {
-  const responsiveMinHeight = Math.max(300, Math.min(500, screenHeight * 0.6));
+  const responsiveMinHeight = Math.max(340, Math.min(540, screenHeight * 0.68));
 
   return StyleSheet.create({
     overlay: {
@@ -619,7 +619,7 @@ const getStyles = (colors: any, typography: any, insets: any, screenHeight: numb
       width: '100%',
       maxWidth: 500,
       minHeight: responsiveMinHeight,
-      maxHeight: '85%',
+      maxHeight: '92%',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
