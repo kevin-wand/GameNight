@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Pressable, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Mail, MailCheck } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,13 +25,18 @@ export default function ResetPasswordScreen() {
   const keyboardAvoidingBehavior =
     Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
-  const getBaseUrl = () => {
+  const getPasswordResetRedirectUrl = () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      return window.location.origin;
+      return `${window.location.origin}/auth/update-password`;
     }
 
-    // Fallback for mobile
-    return 'https://klack.netlify.app';
+    // Native clients should return to the app via deep link.
+    if (Platform.OS !== 'web') {
+      return 'klack://auth/update-password';
+    }
+
+    // Fallback used in uncommon web environments where window is unavailable.
+    return 'https://klack.netlify.app/auth/update-password';
   };
 
   // Check for error parameters from redirects
@@ -80,8 +85,18 @@ export default function ResetPasswordScreen() {
       // Clear any existing session before sending reset email
       await supabase.auth.signOut();
 
-      const redirectUrl = `${getBaseUrl()}/auth/update-password`;
-      console.log('Sending reset email with redirect URL:', redirectUrl);
+      const redirectUrl = getPasswordResetRedirectUrl();
+      const isValidRedirectUrl =
+        redirectUrl.startsWith('http://') ||
+        redirectUrl.startsWith('https://') ||
+        redirectUrl.startsWith('klack://');
+
+      if (!isValidRedirectUrl) {
+        setError('Unable to generate a valid reset link destination. Please try again.');
+        return;
+      }
+
+      console.log(`Sending reset email (${Platform.OS}) with redirect URL:`, redirectUrl);
 
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: redirectUrl,
@@ -135,12 +150,13 @@ export default function ResetPasswordScreen() {
       keyboardVerticalOffset={insets.top + 20}
       style={{ flex: 1 }}
     >
-      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           >
             <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
             <View style={styles.header}>
@@ -219,7 +235,7 @@ export default function ResetPasswordScreen() {
             </View>
           </ScrollView>
         </View>
-      </Pressable>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

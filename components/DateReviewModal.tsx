@@ -93,6 +93,9 @@ const dateToTimeParts = (date: Date | null): TimeParts => {
 };
 
 const isTimeFilled = (h?: string, m?: string) => !!(h && m && h.length > 0 && m.length > 0);
+const normalizeTimeParts = (parts: TimeParts): TimeParts => (
+  parts.h && !parts.m ? { ...parts, m: '00' } : parts
+);
 
 const getDateKey = (date: Date) => date.toISOString().split('T')[0];
 
@@ -126,7 +129,13 @@ const TimeRow = React.memo(({
   const minuteValue = parts.m ? parseInt(parts.m, 10) : null;
 
   const handleHourChange = (value: number | null) => {
-    onChange({ ...parts, h: value ? value.toString() : '' });
+    const nextHour = value ? value.toString() : '';
+    onChange({
+      ...parts,
+      h: nextHour,
+      // Only default minutes when hour is set and minute is still empty.
+      m: nextHour && !parts.m ? '00' : parts.m,
+    });
   };
 
   const handleMinuteChange = (value: number | null) => {
@@ -374,7 +383,6 @@ const DateCard: React.FC<{
                 parts={startParts}
                 onChange={onStartChange}
                 onClear={onStartClear}
-                error={errors.startError}
                 touchTargets={touchTargets}
                 styles={styles}
                 colors={colors}
@@ -387,7 +395,6 @@ const DateCard: React.FC<{
                 parts={endParts}
                 onChange={onEndChange}
                 onClear={onEndClear}
-                error={errors.endError}
                 touchTargets={touchTargets}
                 styles={styles}
                 colors={colors}
@@ -543,7 +550,7 @@ export function DateReviewModal({
     setPerDateTimes(prev => ({
       ...prev,
       [key]: {
-        start: prev[key]?.start || { h: '', m: '', p: 'AM' },
+        start: prev[key]?.start || { h: '', m: '', p: 'PM' },
         end: prev[key]?.end || { h: '', m: '', p: 'PM' },
         [type]: parts
       }
@@ -559,9 +566,9 @@ export function DateReviewModal({
     setPerDateTimes(prev => ({
       ...prev,
       [key]: {
-        start: prev[key]?.start || { h: '', m: '', p: 'AM' },
-        end: prev[key]?.end || { h: '', m: '', p: 'AM' },
-        [type]: { h: '', m: '', p: 'AM' }
+        start: prev[key]?.start || { h: '', m: '', p: 'PM' },
+        end: prev[key]?.end || { h: '', m: '', p: 'PM' },
+        [type]: { h: '', m: '', p: 'PM' }
       }
     }));
     setErrors(prev => ({
@@ -618,19 +625,21 @@ export function DateReviewModal({
 
   const validateAllTimes = useCallback(() => {
     const newErrors = { globalStart: '', globalEnd: '', perDate: {} as Record<string, { startError?: string; endError?: string }> };
+    const normalizedGlobalStart = normalizeTimeParts(globalTime.start);
+    const normalizedGlobalEnd = normalizeTimeParts(globalTime.end);
 
     // Validate global times
-    const globalStart = isTimeFilled(globalTime.start.h, globalTime.start.m)
-      ? timePartsToDate(globalTime.start.h, globalTime.start.m, globalTime.start.p, new Date())
+    const globalStart = isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m)
+      ? timePartsToDate(normalizedGlobalStart.h, normalizedGlobalStart.m, normalizedGlobalStart.p, new Date())
       : null;
-    const globalEnd = isTimeFilled(globalTime.end.h, globalTime.end.m)
-      ? timePartsToDate(globalTime.end.h, globalTime.end.m, globalTime.end.p, new Date())
+    const globalEnd = isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m)
+      ? timePartsToDate(normalizedGlobalEnd.h, normalizedGlobalEnd.m, normalizedGlobalEnd.p, new Date())
       : null;
 
-    if (isTimeFilled(globalTime.start.h, globalTime.start.m) && !globalStart) {
+    if (isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m) && !globalStart) {
       newErrors.globalStart = 'Hour 1–12, Minute 00/15/30/45';
     }
-    if (isTimeFilled(globalTime.end.h, globalTime.end.m) && !globalEnd) {
+    if (isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m) && !globalEnd) {
       newErrors.globalEnd = 'Hour 1–12, Minute 00/15/30/45';
     }
     if (globalStart && globalEnd && compareTimes(globalStart, globalEnd) > 0) {
@@ -643,17 +652,20 @@ export function DateReviewModal({
       if (customTimeDates.has(dateKey)) {
         const dateTimes = perDateTimes[dateKey];
         if (dateTimes) {
-          const customStart = isTimeFilled(dateTimes.start.h, dateTimes.start.m)
-            ? timePartsToDate(dateTimes.start.h, dateTimes.start.m, dateTimes.start.p, date)
+          const normalizedCustomStart = normalizeTimeParts(dateTimes.start);
+          const normalizedCustomEnd = normalizeTimeParts(dateTimes.end);
+
+          const customStart = isTimeFilled(normalizedCustomStart.h, normalizedCustomStart.m)
+            ? timePartsToDate(normalizedCustomStart.h, normalizedCustomStart.m, normalizedCustomStart.p, date)
             : null;
-          const customEnd = isTimeFilled(dateTimes.end.h, dateTimes.end.m)
-            ? timePartsToDate(dateTimes.end.h, dateTimes.end.m, dateTimes.end.p, date)
+          const customEnd = isTimeFilled(normalizedCustomEnd.h, normalizedCustomEnd.m)
+            ? timePartsToDate(normalizedCustomEnd.h, normalizedCustomEnd.m, normalizedCustomEnd.p, date)
             : null;
 
-          if (isTimeFilled(dateTimes.start.h, dateTimes.start.m) && !customStart) {
+          if (isTimeFilled(normalizedCustomStart.h, normalizedCustomStart.m) && !customStart) {
             newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], startError: 'Hour 1–12, Minute 00/15/30/45' };
           }
-          if (isTimeFilled(dateTimes.end.h, dateTimes.end.m) && !customEnd) {
+          if (isTimeFilled(normalizedCustomEnd.h, normalizedCustomEnd.m) && !customEnd) {
             newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], endError: 'Hour 1–12, Minute 00/15/30/45' };
           }
           if (customStart && customEnd && compareTimes(customStart, customEnd) > 0) {
@@ -747,7 +759,7 @@ export function DateReviewModal({
               const dateOptions = getDateSpecificOptions(date);
               const hasCustomTime = customTimeDates.has(dateKey);
               const hasCustomLocation = customLocationDates.has(dateKey);
-              const dateTimes = perDateTimes[dateKey] || { start: { h: '', m: '', p: 'AM' as const }, end: { h: '', m: '', p: 'PM' as const } };
+              const dateTimes = perDateTimes[dateKey] || { start: { h: '', m: '', p: 'PM' as const }, end: { h: '', m: '', p: 'PM' as const } };
 
               const displayTime = hasCustomTime
                 ? formatTimeDisplay(dateOptions.startTime, dateOptions.endTime)
@@ -839,13 +851,15 @@ export function DateReviewModal({
                 setValidationUI(prev => ({ ...prev, showBanner: false }));
                 setErrors({ globalStart: '', globalEnd: '', perDate: {} });
 
+                const normalizedGlobalStart = normalizeTimeParts(globalTime.start);
+                const normalizedGlobalEnd = normalizeTimeParts(globalTime.end);
                 const finalOptions = {
                   location: eventOptions.location,
-                  startTime: isTimeFilled(globalTime.start.h, globalTime.start.m)
-                    ? timePartsToDate(globalTime.start.h, globalTime.start.m, globalTime.start.p, new Date())
+                  startTime: isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m)
+                    ? timePartsToDate(normalizedGlobalStart.h, normalizedGlobalStart.m, normalizedGlobalStart.p, new Date())
                     : null,
-                  endTime: isTimeFilled(globalTime.end.h, globalTime.end.m)
-                    ? timePartsToDate(globalTime.end.h, globalTime.end.m, globalTime.end.p, new Date())
+                  endTime: isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m)
+                    ? timePartsToDate(normalizedGlobalEnd.h, normalizedGlobalEnd.m, normalizedGlobalEnd.p, new Date())
                     : null,
                   dateSpecificOptions: dateSpecificOptions
                 };

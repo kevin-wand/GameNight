@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, FlatList, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Plus, Minus, Trophy, Users, RotateCcw, X, Pen, Check } from 'lucide-react-native';
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
@@ -208,10 +208,15 @@ export default function ScoreTrackerScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
-              {players.map((player, index) => (
+            <FlatList
+              data={players}
+              keyExtractor={(item) => item.id}
+              style={styles.playersList}
+              contentContainerStyle={styles.playersListContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item: player, index }) => (
                 <Animated.View
-                  key={player.id}
                   entering={FadeIn.delay(index * 100)}
                   style={styles.playerItem}
                 >
@@ -247,9 +252,7 @@ export default function ScoreTrackerScreen() {
                     </View>
                   ) : (
                     <>
-                      <View style={styles.playerInfo}>
-                        <Text style={styles.playerName}>{player.name}</Text>
-                      </View>
+                      <Text style={styles.playerName}>{player.name}</Text>
                       <View style={styles.playerActions}>
                         <TouchableOpacity
                           style={styles.editPlayerButton}
@@ -273,14 +276,13 @@ export default function ScoreTrackerScreen() {
                     </>
                   )}
                 </Animated.View>
-              ))}
-            </ScrollView>
-
-            {players.length === 0 && (
-              <Text style={styles.emptyText}>
-                Add at least 2 players to start the game
-              </Text>
-            )}
+              )}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>
+                  Add at least 2 players to start the game
+                </Text>
+              }
+            />
           </View>
 
           {players.length >= 2 && (
@@ -635,7 +637,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     // === INPUT CONTAINER ===
     inputContainer: {
       flexDirection: 'row',
-      marginBottom: 24,
+      marginBottom: 16,
     },
     input: {
       flex: 1,
@@ -672,6 +674,10 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     playersList: {
       flex: 1,
       maxHeight: 300,
+    },
+    playersListContent: {
+      paddingBottom: 20,
+      flexGrow: 1,
     },
     playerItem: {
       flexDirection: 'row',
@@ -743,9 +749,6 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
       marginLeft: 8,
       backgroundColor: colors.tints.neutral,
     },
-    playerInfo: {
-      flex: 1,
-    },
     editPlayerButton: {
       width: 32,
       height: 32,
@@ -767,7 +770,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     emptyText: {
       textAlign: 'center',
       fontFamily: typography.getFontFamily('normal'),
-      fontSize: typography.fontSize.subheadline,
+      fontSize: typography.fontSize.body,
       color: colors.textMuted,
       marginTop: 32,
     },

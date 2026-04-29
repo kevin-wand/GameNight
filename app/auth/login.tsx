@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Pressable, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -99,12 +99,13 @@ export default function LoginScreen() {
       keyboardVerticalOffset={insets.top + 20}
       style={{ flex: 1 }}
     >
-      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           >
             <View style={[styles.contentWrapper, { paddingTop: insets.top + 20 }]}>
               <View style={styles.header}>
@@ -216,7 +217,7 @@ export default function LoginScreen() {
             </View>
           </ScrollView>
         </View>
-      </Pressable>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

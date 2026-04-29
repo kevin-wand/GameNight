@@ -10,8 +10,8 @@ import {
   Platform,
   Linking,
   ScrollView,
-  Pressable,
   Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { ArrowLeft, User, UserPlus } from 'lucide-react-native';
@@ -262,12 +262,13 @@ export default function RegisterProfileScreen() {
       keyboardVerticalOffset={insets.top}
       style={{ flex: 1 }}
     >
-      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           >
             <View style={[styles.contentWrapper, { paddingTop: insets.top }]}>
               {/*<View style={styles.header}>
@@ -441,7 +442,7 @@ export default function RegisterProfileScreen() {
             </View>
           </ScrollView>
         </View>
-      </Pressable>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
