@@ -111,14 +111,8 @@ export default function RegisterScreen() {
       setLoading(false);
     }
   };
-  return (
-    <KeyboardAvoidingView
-      behavior={keyboardAvoidingBehavior}
-      keyboardVerticalOffset={insets.top + 20}
-      style={{ flex: 1 }}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.container}>
+  const screenContent = (
+    <View style={styles.container}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
@@ -260,7 +254,21 @@ export default function RegisterScreen() {
             </View>
           </ScrollView>
         </View>
-      </TouchableWithoutFeedback>
+  );
+
+  return (
+    <KeyboardAvoidingView
+      behavior={keyboardAvoidingBehavior}
+      keyboardVerticalOffset={insets.top + 20}
+      style={{ flex: 1 }}
+    >
+      {Platform.OS === 'web' ? (
+        screenContent
+      ) : (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          {screenContent}
+        </TouchableWithoutFeedback>
+      )}
     </KeyboardAvoidingView>
   );
 }
