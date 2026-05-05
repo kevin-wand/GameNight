@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, Keyboard, TouchableWithoutFeedback, Linking } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/services/supabase';
@@ -28,7 +28,34 @@ export default function RegisterScreen() {
   const keyboardAvoidingBehavior =
     Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
-  const handleContinue = async () => {
+  const legalPagesBaseUrl = Platform.select({
+    web: typeof window !== 'undefined' ? window.location.origin : 'https://klack.netlify.app',
+    default: 'https://klack.netlify.app',
+  });
+
+  const redirectToProfileCompletion = () => {
+    router.push({
+      pathname: '/auth/register-profile',
+      params: { fromSignup: '1' },
+    });
+  };
+
+  const ensurePlaceholderProfile = async (userId: string, normalizedEmail: string) => {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: userId,
+          username: normalizedEmail,
+          firstname: null,
+          lastname: null,
+        },
+        { onConflict: 'id' }
+      );
+    return profileError;
+  };
+
+  const handleCreateAccount = async () => {
     Keyboard.dismiss();
     try {
       setLoading(true);
@@ -64,46 +91,108 @@ export default function RegisterScreen() {
         return;
       }
 
-      // Check whether this email already has an account before proceeding
-      const { error: emailCheckError } = await supabase.auth.signInWithOtp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: normalizedEmail,
+        password,
         options: {
-          shouldCreateUser: false,
+          emailRedirectTo: Platform.OS === 'web' ? window.location.origin : 'klack://auth/callback',
+          data: {
+            email_confirm: true,
+          },
         },
       });
 
-      if (!emailCheckError) {
-        setError('This email is already registered. Please sign in instead.');
-        return;
-      }
+      if (authError) {
+        const isDuplicate =
+          authError.status === 422 ||
+          authError.message.includes('already registered') ||
+          authError.message.includes('User already registered') ||
+          authError.message.includes('duplicate key value');
 
-      const emailCheckMessage = emailCheckError.message.toLowerCase();
-      const isUnregisteredEmail = emailCheckMessage.includes('signups not allowed for otp');
+        if (isDuplicate) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
 
-      if (!isUnregisteredEmail) {
-        if (emailCheckError.status === 429 || emailCheckMessage.includes('rate limit')) {
+          if (signInError) {
+            setError(
+              'This email is already registered with a different password. Please try logging in or use password reset.'
+            );
+            return;
+          }
+
+          if (!signInData.user) {
+            setError('Failed to sign in. Please try again.');
+            return;
+          }
+
+          const userId = signInData.user.id;
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, username')
+            .eq('id', userId)
+            .maybeSingle();
+
+          const hasRealUsername =
+            profile?.username &&
+            profile.username.trim().toLowerCase() !== normalizedEmail;
+
+          if (hasRealUsername) {
+            setError('Account already exists and is complete. Please sign in instead.');
+            return;
+          }
+
+          const profileErr = await ensurePlaceholderProfile(userId, normalizedEmail);
+          if (profileErr) {
+            console.error('Profile placeholder error (duplicate path):', profileErr);
+            setError('Could not finish setup. Please try signing in.');
+            return;
+          }
+
+          redirectToProfileCompletion();
+          return;
+        }
+
+        if (authError.status === 400) {
+          setError('Invalid request. Please check your input and try again.');
+          return;
+        }
+        if (authError.status === 429) {
           setError('Too many attempts. Please wait a moment and try again.');
           return;
         }
-
-        if (emailCheckError.status && emailCheckError.status >= 500) {
+        if (authError.status && typeof authError.status === 'number' && authError.status >= 500) {
           setError('Server error. Please try again later.');
           return;
         }
-
-        setError('Unable to validate email right now. Please try again.');
+        setError(authError.message || 'Failed to create account. Please try again.');
         return;
       }
 
-      // Validation passed - proceed to profile completion
-      // Auth user creation will happen on the next screen
-      router.push({
-        pathname: '/auth/register-profile',
-        params: {
-          email: normalizedEmail,
-          password,
-        }
-      });
+      let userId = authData.user?.id ?? null;
+      if (!userId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        userId = session?.user?.id ?? null;
+      }
+      if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        userId = user?.id ?? null;
+      }
+
+      if (!userId) {
+        setError('Account could not be created. Please try again or confirm your email if required.');
+        return;
+      }
+
+      const profileErr = await ensurePlaceholderProfile(userId, normalizedEmail);
+      if (profileErr) {
+        console.error('Profile placeholder error:', profileErr);
+        setError('Account created but profile setup failed. Try signing in to continue.');
+        return;
+      }
+
+      redirectToProfileCompletion();
     } catch (err) {
       console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -129,14 +218,10 @@ export default function RegisterScreen() {
                   />
                   <Text style={styles.title}>Klack</Text>
                 </View>
-                <Text style={styles.subtitle}>
-                  The ultimate tool for organizing your next game night
-                </Text>
               </View>
 
               <View style={styles.formContainer}>
                 <Text style={styles.formTitle}>Create Account</Text>
-                <Text style={styles.formSubtitle}>Enter your email and password to get started</Text>
 
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Email</Text>
@@ -205,7 +290,7 @@ export default function RegisterScreen() {
                       placeholderTextColor={colors.textMuted}
                       secureTextEntry={!showConfirmPassword}
                       returnKeyType="done"
-                      onSubmitEditing={handleContinue}
+                      onSubmitEditing={handleCreateAccount}
                       accessibilityLabel="Confirm password"
                       accessibilityHint="Re-enter your password to confirm"
                     />
@@ -232,15 +317,14 @@ export default function RegisterScreen() {
                 <TouchableOpacity
                   style={[styles.button, loading && styles.buttonDisabled]}
                   hitSlop={touchTargets.standard}
-                  onPress={handleContinue}
+                  onPress={handleCreateAccount}
                   disabled={loading}
-                  accessibilityLabel={loading ? "Validating account" : "Continue to profile setup"}
+                  accessibilityLabel={loading ? 'Creating account' : 'Create account'}
                   accessibilityRole="button"
                 >
                   <Text style={styles.buttonText}>
-                    {loading ? 'Validating...' : 'Continue'}
+                    {loading ? 'Creating account...' : 'Create Account'}
                   </Text>
-                  <ArrowRight color={colors.card} size={20} />
                 </TouchableOpacity>
 
                 <Link href="/auth/login" asChild>
@@ -250,6 +334,30 @@ export default function RegisterScreen() {
                     </Text>
                   </TouchableOpacity>
                 </Link>
+
+                <Text style={styles.disclaimerText}>
+                  By creating an account you agree to our{' '}
+                  <Text
+                    style={styles.disclaimerLink}
+                    onPress={() => Linking.openURL(`${legalPagesBaseUrl}/PRIVACY_POLICY.html`)}
+                    accessibilityLabel="Privacy Policy"
+                    accessibilityRole="button"
+                    accessibilityHint="Opens Klack's privacy policy in your browser"
+                  >
+                    privacy policy
+                  </Text>
+                  {' '}and acknowledge that you have read our{' '}
+                  <Text
+                    style={styles.disclaimerLink}
+                    onPress={() => Linking.openURL(`${legalPagesBaseUrl}/TERMS_OF_SERVICE.html`)}
+                    accessibilityLabel="Terms of Service"
+                    accessibilityRole="button"
+                    accessibilityHint="Opens Klack's terms of service in your browser"
+                  >
+                    terms of service
+                  </Text>
+                  .
+                </Text>
               </View>
             </View>
           </ScrollView>
@@ -287,13 +395,12 @@ const getStyles = (colors: any, typography: any, isDark: boolean, screenHeight: 
   },
   header: {
     paddingHorizontal: 24,
-    paddingBottom: 20,
+    paddingBottom: 10,
     alignItems: 'center',
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
   logoIcon: {
     width: 40,
@@ -312,15 +419,6 @@ const getStyles = (colors: any, typography: any, isDark: boolean, screenHeight: 
     textAlign: 'center',
     color: colors.text,
     fontSize: typography.fontSize.title1,
-  },
-  subtitle: {
-    fontFamily: 'Poppins-Regular',
-    textAlign: 'center',
-    opacity: 0.9,
-    lineHeight: 22,
-    maxWidth: 280,
-    color: colors.text,
-    fontSize: typography.fontSize.body,
   },
   formContainer: {
     width: '100%',
@@ -341,13 +439,6 @@ const getStyles = (colors: any, typography: any, isDark: boolean, screenHeight: 
     marginBottom: 8,
     color: colors.text,
     fontSize: typography.fontSize.title2,
-  },
-  formSubtitle: {
-    fontFamily: typography.getFontFamily('normal'),
-    textAlign: 'center',
-    marginBottom: 16,
-    color: colors.textMuted,
-    fontSize: typography.fontSize.body,
   },
   inputContainer: {
     marginBottom: 20,
@@ -402,7 +493,6 @@ const getStyles = (colors: any, typography: any, isDark: boolean, screenHeight: 
   },
   buttonText: {
     fontFamily: typography.getFontFamily('semibold'),
-    marginRight: 8,
     color: colors.card,
     fontSize: typography.fontSize.callout,
   },
@@ -425,5 +515,17 @@ const getStyles = (colors: any, typography: any, isDark: boolean, screenHeight: 
   signInText: {
     fontFamily: typography.getFontFamily('semibold'),
     color: colors.primary,
+  },
+  disclaimerText: {
+    marginTop: 20,
+    color: colors.textMuted,
+    fontSize: typography.fontSize.caption1,
+    fontFamily: typography.getFontFamily('normal'),
+    textAlign: 'center',
+    lineHeight: typography.lineHeight.normal * typography.fontSize.caption1,
+  },
+  disclaimerLink: {
+    color: colors.primary,
+    fontFamily: typography.getFontFamily('semibold'),
   },
 });

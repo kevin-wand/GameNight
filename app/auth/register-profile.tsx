@@ -8,13 +8,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Linking,
   ScrollView,
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useRouter, useLocalSearchParams, Link } from 'expo-router';
-import { ArrowLeft, User, UserPlus } from 'lucide-react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { User } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,6 +21,7 @@ import { supabase } from '@/services/supabase';
 import { useTheme } from '@/hooks/useTheme';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { validateProfileFields } from '@/utils/profanityFilter';
+import { showRegisterProfileExitToast } from '@/utils/profileUsernamePlaceholder';
 
 export default function RegisterProfileScreen() {
   const [username, setUsername] = useState('');
@@ -29,49 +29,53 @@ export default function RegisterProfileScreen() {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isResume, setIsResume] = useState(false);
-  const [privacyExpanded, setPrivacyExpanded] = useState(false);
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{ fromSignup?: string; userId?: string }>();
+  const fromSignup = params.fromSignup === '1';
+  const fromLoginIncomplete = Boolean(params.userId) && !fromSignup;
   const { colors, typography, touchTargets, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { screenHeight, isDesktop } = useDeviceType();
+  const { isDesktop } = useDeviceType();
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
 
   const keyboardAvoidingBehavior =
     Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined;
 
-  const legalPagesBaseUrl = Platform.select({
-    web: typeof window !== 'undefined' ? window.location.origin : 'https://klack.netlify.app',
-    default: 'https://klack.netlify.app',
-  });
-
   useEffect(() => {
-    // Check if we have params (new registration) or if user is authenticated (resume)
-    if (params.email && params.password) {
-      // New registration flow with params (userId no longer passed from register screen)
-      setIsResume(false);
-    } else {
-      // Check if user is authenticated (resume flow)
-      const checkAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          Alert.alert(
-            'Access Denied',
-            'Please complete your registration from the beginning.',
-            [{ text: 'OK', onPress: () => router.replace('/auth/register') }]
-          );
-          return;
-        }
-        // User is authenticated, allow them to complete profile
-        setIsResume(true);
-      };
-      checkAuth();
-    }
-  }, [params, router]);
+    let cancelled = false;
 
-  const handleCreateAccount = async () => {
+    const load = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert(
+          'Access Denied',
+          'Please complete your registration from the beginning.',
+          [{ text: 'OK', onPress: () => router.replace('/auth/register') }]
+        );
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, firstname, lastname')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      setUsername(profile?.username ?? '');
+      setFirstName(profile?.firstname ?? '');
+      setLastName(profile?.lastname ?? '');
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  const handleCompleteProfile = async () => {
     Keyboard.dismiss();
     try {
       setLoading(true);
@@ -90,168 +94,73 @@ export default function RegisterProfileScreen() {
         return;
       }
 
-      // Check if username is available (treat not found as available)
-      const { data: existingUser, error: userCheckError } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('Session expired. Please sign in again.');
+        return;
+      }
+
+      const trimmedUsername = username.trim();
+
+      const { data: existingRow, error: userCheckError } = await supabase
         .from('profiles')
-        .select('username')
-        .eq('username', username.trim())
+        .select('id')
+        .eq('username', trimmedUsername)
         .maybeSingle();
 
       if (userCheckError && userCheckError.code !== 'PGRST116') {
-        // PGRST116 is PostgREST not found; ignore that
         console.error('Username availability check error:', userCheckError);
       }
 
-      if (existingUser) {
+      if (existingRow && existingRow.id !== user.id) {
         setError('Username is already taken');
         return;
       }
 
-      // Get user ID for profile creation
-      let userId: string;
-      if (isResume) {
-        // Resume flow - get current user ID
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setError('Session expired. Please sign in again.');
-          return;
-        }
-        userId = user.id;
-      } else {
-        // New registration flow - create auth user now
-        const email = params.email as string;
-        const password = params.password as string;
-
-        if (!email || !password) {
-          setError('Missing registration information. Please start over.');
-          return;
-        }
-
-        // Create the auth user
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: Platform.OS === 'web' ? window.location.origin : 'klack://auth/callback',
-            data: {
-              email_confirm: true,
-            },
-          },
-        });
-
-        if (authError) {
-          console.log('Auth error:', authError);
-
-          // Check if email already exists - might be an incomplete registration
-          if (authError.status === 422 ||
-            authError.message.includes('already registered') ||
-            authError.message.includes('User already registered') ||
-            authError.message.includes('duplicate key value')) {
-
-            // Try to sign in with the credentials to check for incomplete profile
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-
-            if (signInError) {
-              // Can't sign in - might be wrong password or other issue
-              setError('This email is already registered with a different password. Please try logging in or use password reset.');
-              return;
-            }
-
-            // Successfully signed in - check if profile exists
-            if (signInData.user) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('id, username')
-                .eq('id', signInData.user.id)
-                .maybeSingle();
-
-              if (profile && profile.username) {
-                // Complete profile exists
-                setError('Account already exists and is complete. Please sign in instead.');
-                return;
-              }
-
-              // Incomplete profile - allow them to complete it
-              console.log('Found incomplete registration, allowing profile completion');
-              userId = signInData.user.id;
-            } else {
-              setError('Failed to create account. Please try again.');
-              return;
-            }
-          } else if (authError.status === 400) {
-            setError('Invalid request. Please check your input and try again.');
-            return;
-          } else if (authError.status === 429) {
-            setError('Too many attempts. Please wait a moment and try again.');
-            return;
-          } else if (authError.status && typeof authError.status === 'number' && authError.status >= 500) {
-            setError('Server error. Please try again later.');
-            return;
-          } else {
-            setError(authError.message || 'Failed to create account. Please try again.');
-            return;
-          }
-        } else if (authData.user) {
-          userId = authData.user.id;
-        } else {
-          setError('Failed to create account. Please try again.');
-          return;
-        }
-      }
-
-      // Create profile record
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: userId,
-          username: username.trim(),
-          firstname: firstName.trim() || null,
-          lastname: lastName.trim() || null,
-        });
+        .upsert(
+          {
+            id: user.id,
+            username: trimmedUsername,
+            firstname: firstName.trim() || null,
+            lastname: lastName.trim() || null,
+          },
+          { onConflict: 'id' }
+        );
 
       if (profileError) {
-        console.error('Profile creation error:', profileError);
-        setError('Failed to create profile. Please try again.');
+        console.error('Profile update error:', profileError);
+        setError('Failed to save profile. Please try again.');
         return;
       }
 
-      Toast.show({
-        type: 'success',
-        text1: 'Profile Created!',
-        text2: 'Welcome to Klack!',
-      });
+      await showRegisterProfileExitToast(user.id, 'saved');
 
-      // Delay redirect slightly to show toast
       setTimeout(() => {
         router.replace('/collection');
-      }, 1500);
+      }, 900);
     } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Unexpected Error',
         text2: err instanceof Error ? err.message : 'Something went wrong.',
       });
-      setError(err instanceof Error ? err.message : 'Failed to create profile');
+      setError(err instanceof Error ? err.message : 'Failed to save profile');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBack = () => {
-    console.log('Back button pressed, isResume:', isResume, 'loading:', loading);
-
-    if (isResume) {
-      // Resume flow - user can go back to login since they're already authenticated
-      console.log('Resume flow: navigating to login');
-      router.replace('/auth/login');
-    } else {
-      // New registration flow - try to go back to register page
-      console.log('New registration flow: navigating to register');
-      router.push('/auth/register'); // Explicitly navigate to register page
+  const handleEditLater = async () => {
+    Keyboard.dismiss();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace('/auth/register');
+      return;
     }
+    await showRegisterProfileExitToast(user.id, 'skipped');
+    router.replace('/collection');
   };
 
   const styles = getStyles(colors, typography, isDark);
@@ -279,9 +188,9 @@ export default function RegisterProfileScreen() {
 
               <View style={styles.formContainer}>
                 <Text style={styles.formTitle}>
-                  {isResume ? 'Complete Your Registration' : 'Complete Profile'}
+                  {fromSignup ? 'Edit Profile' : 'Complete Your Registration'}
                 </Text>
-                {isResume && (
+                {fromLoginIncomplete && (
                   <Text style={styles.resumeMessage}>
                     Welcome back! Please complete your profile to finish setting up your account.
                   </Text>
@@ -341,7 +250,7 @@ export default function RegisterProfileScreen() {
                       autoCapitalize="words"
                       textContentType="familyName"
                       returnKeyType="done"
-                      onSubmitEditing={handleCreateAccount}
+                      onSubmitEditing={handleCompleteProfile}
                       accessibilityLabel="Last name"
                       accessibilityHint="Optional"
                     />
@@ -376,54 +285,28 @@ export default function RegisterProfileScreen() {
 
                 <TouchableOpacity
                   style={[styles.createButton, loading && styles.buttonDisabled]}
-                  onPress={handleCreateAccount}
+                  onPress={handleCompleteProfile}
                   disabled={loading}
                   accessibilityRole="button"
-                  accessibilityLabel={loading ? 'Creating account' : 'Create account'}
-                  accessibilityHint="Creates your profile and continues"
+                  accessibilityLabel={loading ? 'Saving profile' : 'Complete profile'}
+                  accessibilityHint="Saves your profile and goes to your collection"
                 >
-                  <UserPlus color={colors.card} size={20} />
                   <Text style={styles.createButtonText}>
-                    {loading ? 'Creating Account...' : 'Create Account'}
+                    {loading ? 'Saving...' : 'Complete Profile'}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.backButton, loading && styles.buttonDisabled]}
-                  onPress={handleBack}
+                  onPress={handleEditLater}
                   disabled={loading}
                   hitSlop={touchTargets.standard}
                   accessibilityRole="button"
-                  accessibilityLabel="Back"
-                  accessibilityHint="Go back to sign in"
+                  accessibilityLabel="Edit later"
+                  accessibilityHint="Skips saving and opens your collection"
                 >
-                  <ArrowLeft color={colors.textMuted} size={20} />
-                  <Text style={styles.backButtonText}>Back</Text>
+                  <Text style={styles.backButtonText}>Edit Later</Text>
                 </TouchableOpacity>
-
-                <Text style={styles.loginText}>
-                  By clicking "Create Account" you agree to our{' '}
-                  <Text
-                    style={styles.signInText}
-                    onPress={() => Linking.openURL(`${legalPagesBaseUrl}/PRIVACY_POLICY.html`)}
-                    accessibilityLabel="Privacy Policy"
-                    accessibilityRole="button"
-                    accessibilityHint="Opens Klack's privacy policy in your browser"
-                  >
-                    privacy policy
-                  </Text>
-                  {' '}and acknowledge that you have read our{' '}
-                  <Text
-                    style={styles.signInText}
-                    onPress={() => Linking.openURL(`${legalPagesBaseUrl}/TERMS_OF_SERVICE.html`)}
-                    accessibilityLabel="Terms of Service"
-                    accessibilityRole="button"
-                    accessibilityHint="Opens Klack's terms of service in your browser"
-                  >
-                    terms of service
-                  </Text>
-                  .
-                </Text>
 
                 {/* <Link href="/auth/login" asChild>
               <TouchableOpacity style={styles.loginLink} hitSlop={touchTargets.standard}>
@@ -625,7 +508,6 @@ const getStyles = (colors: any, typography: any, isDark: boolean) => StyleSheet.
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 12,
     minHeight: 44,
@@ -637,14 +519,12 @@ const getStyles = (colors: any, typography: any, isDark: boolean) => StyleSheet.
     color: colors.card,
     fontSize: typography.fontSize.callout,
     fontFamily: typography.getFontFamily('semibold'),
-    marginLeft: 8,
   },
   backButton: {
     backgroundColor: colors.tints.neutral,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 16,
     minHeight: 44,
@@ -653,7 +533,6 @@ const getStyles = (colors: any, typography: any, isDark: boolean) => StyleSheet.
     color: colors.textMuted,
     fontSize: typography.fontSize.callout,
     fontFamily: typography.getFontFamily('semibold'),
-    marginLeft: 8,
   },
   errorText: {
     color: colors.error,

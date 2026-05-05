@@ -1,12 +1,19 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, ListFilter, Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
 
 import { supabase } from '@/services/supabase';
+import {
+  isPlaceholderProfileUsername,
+  PROFILE_TAB_HINT,
+  USERNAME_PLACEHOLDER_TOAST_STORAGE_PREFIX,
+} from '@/utils/profileUsernamePlaceholder';
 import { GameItem } from '@/components/GameItem';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
@@ -46,6 +53,7 @@ export default function CollectionScreen() {
   } | null>(null);
 
   const router = useRouter();
+  const placeholderUsernamePromptDone = useRef(false);
 
   // Filter state management
   const {
@@ -322,6 +330,45 @@ export default function CollectionScreen() {
   useEffect(() => {
     loadGames();
   }, [loadGames]);
+
+  useEffect(() => {
+    if (loading || placeholderUsernamePromptDone.current) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      placeholderUsernamePromptDone.current = true;
+
+      const email = user.email ?? '';
+      if (!isPlaceholderProfileUsername(profile?.username, email)) return;
+
+      const key = `${USERNAME_PLACEHOLDER_TOAST_STORAGE_PREFIX}${user.id}`;
+      const shown = await AsyncStorage.getItem(key);
+      if (shown === '1') return;
+
+      await AsyncStorage.setItem(key, '1');
+      Toast.show({
+        type: 'info',
+        text1: 'Username',
+        text2: PROFILE_TAB_HINT,
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading]);
 
 
   if (loading) {
