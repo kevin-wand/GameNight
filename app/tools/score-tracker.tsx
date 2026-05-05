@@ -642,6 +642,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     input: {
       flex: 1,
       flexShrink: 1,
+      minWidth: 0,
       backgroundColor: colors.card,
       borderRadius: 12,
       padding: 16,
@@ -702,6 +703,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
     },
     editInput: {
       flex: 1,
+      minWidth: 0,
       backgroundColor: colors.background,
       borderRadius: 8,
       paddingHorizontal: 12,
