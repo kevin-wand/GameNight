@@ -1,19 +1,31 @@
 import 'react-native-get-random-values';
 import 'react-native-reanimated';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
-import Toast from 'react-native-toast-message';
+import Toast, { ErrorToast, InfoToast, SuccessToast } from 'react-native-toast-message';
 import { initializeSafariFixes, persistSessionInSafari } from '@/utils/safari-polyfill';
 import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ModalSurfaceProvider } from '@/contexts/ModalSurfaceContext';
 import { RootErrorBoundary } from '@/components/RootErrorBoundary';
 import '../styles/globals.css';
+
+const toastConfig = {
+  success: (props: React.ComponentProps<typeof SuccessToast>) => (
+    <SuccessToast {...props} text1NumberOfLines={2} text2NumberOfLines={4} />
+  ),
+  error: (props: React.ComponentProps<typeof ErrorToast>) => (
+    <ErrorToast {...props} text1NumberOfLines={2} text2NumberOfLines={4} />
+  ),
+  info: (props: React.ComponentProps<typeof InfoToast>) => (
+    <InfoToast {...props} text1NumberOfLines={2} text2NumberOfLines={4} />
+  ),
+};
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -60,7 +72,7 @@ export default function RootLayout() {
                 <Stack.Screen name="auth" options={{ headerShown: false }} />
                 <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
               </Stack>
-              <Toast />
+              <Toast config={toastConfig} />
               <StatusBar
                 style={colorScheme === 'dark' ? 'light' : 'dark'}
                 backgroundColor={colorScheme === 'dark' ? '#1a2b5f' : '#ffffff'}
