@@ -437,43 +437,37 @@ export default function ScoreTrackerScreen() {
 
       <ScrollView style={styles.finishedContent} showsVerticalScrollIndicator={false}>
         <View style={styles.podiumSection}>
-          {/* 2nd Place - Left */}
           {sortedPlayers[1] && (
-            <Animated.View
+            <View
               key={sortedPlayers[1].id}
-              entering={FadeIn.delay(200)}
               style={[styles.podiumItem, styles.podiumSecond]}
             >
               <Text style={styles.podiumPositionSecond}>🥈</Text>
               <Text style={styles.podiumNameSecond}>{sortedPlayers[1].name}</Text>
               <Text style={styles.podiumScoreSecond}>{sortedPlayers[1].total}</Text>
-            </Animated.View>
+            </View>
           )}
 
-          {/* 1st Place - Center */}
           {sortedPlayers[0] && (
-            <Animated.View
+            <View
               key={sortedPlayers[0].id}
-              entering={FadeIn.delay(0)}
               style={[styles.podiumItem, styles.podiumFirst]}
             >
               <Text style={styles.podiumPositionFirst}>🥇</Text>
               <Text style={styles.podiumNameFirst}>{sortedPlayers[0].name}</Text>
               <Text style={styles.podiumScoreFirst}>{sortedPlayers[0].total}</Text>
-            </Animated.View>
+            </View>
           )}
 
-          {/* 3rd Place - Right */}
           {sortedPlayers[2] && (
-            <Animated.View
+            <View
               key={sortedPlayers[2].id}
-              entering={FadeIn.delay(400)}
               style={[styles.podiumItem, styles.podiumThird]}
             >
               <Text style={styles.podiumPositionThird}>🥉</Text>
               <Text style={styles.podiumNameThird}>{sortedPlayers[2].name}</Text>
               <Text style={styles.podiumScoreThird}>{sortedPlayers[2].total}</Text>
-            </Animated.View>
+            </View>
           )}
         </View>
 
@@ -1045,7 +1039,7 @@ function getStyles(colors: any, typography: any, touchTargets: any) {
       alignItems: 'flex-end',
       minHeight: 200,
       gap: 0,
-      flex: 1,
+      width: '100%',
     },
     podiumItem: {
       backgroundColor: colors.card,
