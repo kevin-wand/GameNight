@@ -1,5 +1,6 @@
 import React from 'react';
 import Constants from 'expo-constants';
+import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { modalSurfacesSnapshotRef } from '@/contexts/ModalSurfaceContext';
@@ -38,6 +39,16 @@ export class RootErrorBoundary extends React.Component<
 
     // Single structured payload makes Metro logs easier to compare with copied details.
     console.error('RootErrorBoundary caught an error', payload);
+
+    Sentry.captureException(error, {
+      extra: {
+        componentStack: errorInfo.componentStack,
+        modalSurfaces: payload.modalSurfaces,
+        appVersion: payload.appVersion,
+        buildVersion: payload.buildVersion,
+        platform: payload.platform,
+      },
+    });
 
     this.setState({
       hasError: true,

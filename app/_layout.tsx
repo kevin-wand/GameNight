@@ -14,6 +14,23 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ModalSurfaceProvider } from '@/contexts/ModalSurfaceContext';
 import { RootErrorBoundary } from '@/components/RootErrorBoundary';
 import '../styles/globals.css';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT ?? (__DEV__ ? 'development' : 'production'),
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: false,
+
+  // Enable Logs
+  enableLogs: false,
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 const toastConfig = {
   success: (props: React.ComponentProps<typeof SuccessToast>) => (
@@ -27,7 +44,7 @@ const toastConfig = {
   ),
 };
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   useFrameworkReady();
   const colorScheme = useColorScheme();
 
@@ -83,4 +100,4 @@ export default function RootLayout() {
       </AccessibilityProvider>
     </AuthProvider>
   );
-}
+});

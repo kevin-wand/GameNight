@@ -61,8 +61,15 @@
       "web"
     ],
     "plugins": [
-      "expo-router"
-      //,"react-native-legal"
+      "expo-router",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "organization": "klack-llc",
+          "project": "react-native"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Switch, Modal } from 'react-native';
 import { format } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SquarePen, X } from 'lucide-react-native';
+import { SquarePen, X, Plus, Minus } from 'lucide-react-native';
 import { CreateEventDetails } from './CreateEventDetails';
 import { TimeDropdown } from './DropdownEventTime';
 import { useTheme } from '@/hooks/useTheme';
@@ -57,7 +57,7 @@ interface TimeRowProps {
   styles: any;
   colors: any;
   typography: any;
-  saveAttempted: boolean;
+  showError: boolean;
 }
 
 // ============================================================================
@@ -108,6 +108,147 @@ const formatTimeDisplay = (start: Date | null, end: Date | null): string => {
 
 const compareTimes = (a: Date, b: Date) => a.getTime() - b.getTime();
 
+const ORDERING_ERROR = 'End must be after Start';
+
+const isPairFilled = (start: TimeParts, end: TimeParts) => {
+  const normalizedStart = normalizeTimeParts(start);
+  const normalizedEnd = normalizeTimeParts(end);
+  return isTimeFilled(normalizedStart.h, normalizedStart.m) &&
+    isTimeFilled(normalizedEnd.h, normalizedEnd.m);
+};
+
+const shouldShowTimeError = (
+  error: string | undefined,
+  saveAttempted: boolean,
+  options?: { endExpanded?: boolean; pairFilled?: boolean }
+) => {
+  if (!error) return false;
+  if (saveAttempted) return true;
+  return !!(
+    options?.endExpanded &&
+    options?.pairFilled &&
+    error === ORDERING_ERROR
+  );
+};
+
+type TimeErrors = {
+  globalStart: string;
+  globalEnd: string;
+  perDate: Record<string, { startError?: string; endError?: string }>;
+};
+
+type ValidateTimesInput = {
+  globalTime: { start: TimeParts; end: TimeParts };
+  globalEndExpanded: boolean;
+  perDateTimes: Record<string, { start: TimeParts; end: TimeParts }>;
+  perDateEndExpanded: Set<string>;
+  selectedDates: Date[];
+  customTimeDates: Set<string>;
+};
+
+const validateOrderingOnly = (input: ValidateTimesInput): Pick<TimeErrors, 'globalEnd' | 'perDate'> => {
+  const { globalTime, globalEndExpanded, perDateTimes, perDateEndExpanded, selectedDates, customTimeDates } = input;
+  const newErrors: Pick<TimeErrors, 'globalEnd' | 'perDate'> = { globalEnd: '', perDate: {} };
+
+  if (globalEndExpanded && isPairFilled(globalTime.start, globalTime.end)) {
+    const normalizedGlobalStart = normalizeTimeParts(globalTime.start);
+    const normalizedGlobalEnd = normalizeTimeParts(globalTime.end);
+    const globalStart = timePartsToDate(
+      normalizedGlobalStart.h, normalizedGlobalStart.m, normalizedGlobalStart.p, new Date()
+    );
+    const globalEnd = timePartsToDate(
+      normalizedGlobalEnd.h, normalizedGlobalEnd.m, normalizedGlobalEnd.p, new Date()
+    );
+    if (globalStart && globalEnd && compareTimes(globalStart, globalEnd) > 0) {
+      newErrors.globalEnd = ORDERING_ERROR;
+    }
+  }
+
+  selectedDates.forEach(date => {
+    const dateKey = getDateKey(date);
+    if (!customTimeDates.has(dateKey) || !perDateEndExpanded.has(dateKey)) return;
+
+    const dateTimes = perDateTimes[dateKey];
+    if (!dateTimes || !isPairFilled(dateTimes.start, dateTimes.end)) return;
+
+    const normalizedCustomStart = normalizeTimeParts(dateTimes.start);
+    const normalizedCustomEnd = normalizeTimeParts(dateTimes.end);
+    const customStart = timePartsToDate(
+      normalizedCustomStart.h, normalizedCustomStart.m, normalizedCustomStart.p, date
+    );
+    const customEnd = timePartsToDate(
+      normalizedCustomEnd.h, normalizedCustomEnd.m, normalizedCustomEnd.p, date
+    );
+    if (customStart && customEnd && compareTimes(customStart, customEnd) > 0) {
+      newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], endError: ORDERING_ERROR };
+    }
+  });
+
+  return newErrors;
+};
+
+const validateAllTimesPure = (input: ValidateTimesInput): TimeErrors => {
+  const { globalTime, globalEndExpanded, perDateTimes, perDateEndExpanded, selectedDates, customTimeDates } = input;
+  const newErrors: TimeErrors = { globalStart: '', globalEnd: '', perDate: {} };
+  const normalizedGlobalStart = normalizeTimeParts(globalTime.start);
+  const normalizedGlobalEnd = normalizeTimeParts(globalTime.end);
+
+  const globalStart = isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m)
+    ? timePartsToDate(normalizedGlobalStart.h, normalizedGlobalStart.m, normalizedGlobalStart.p, new Date())
+    : null;
+
+  if (isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m) && !globalStart) {
+    newErrors.globalStart = 'Hour 1–12, Minute 00/15/30/45';
+  }
+
+  if (globalEndExpanded) {
+    const globalEnd = isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m)
+      ? timePartsToDate(normalizedGlobalEnd.h, normalizedGlobalEnd.m, normalizedGlobalEnd.p, new Date())
+      : null;
+
+    if (isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m) && !globalEnd) {
+      newErrors.globalEnd = 'Hour 1–12, Minute 00/15/30/45';
+    }
+    if (globalStart && globalEnd && compareTimes(globalStart, globalEnd) > 0) {
+      newErrors.globalEnd = ORDERING_ERROR;
+    }
+  }
+
+  selectedDates.forEach(date => {
+    const dateKey = getDateKey(date);
+    if (!customTimeDates.has(dateKey)) return;
+
+    const dateTimes = perDateTimes[dateKey];
+    if (!dateTimes) return;
+
+    const normalizedCustomStart = normalizeTimeParts(dateTimes.start);
+    const normalizedCustomEnd = normalizeTimeParts(dateTimes.end);
+
+    const customStart = isTimeFilled(normalizedCustomStart.h, normalizedCustomStart.m)
+      ? timePartsToDate(normalizedCustomStart.h, normalizedCustomStart.m, normalizedCustomStart.p, date)
+      : null;
+
+    if (isTimeFilled(normalizedCustomStart.h, normalizedCustomStart.m) && !customStart) {
+      newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], startError: 'Hour 1–12, Minute 00/15/30/45' };
+    }
+
+    if (perDateEndExpanded.has(dateKey)) {
+      const customEnd = isTimeFilled(normalizedCustomEnd.h, normalizedCustomEnd.m)
+        ? timePartsToDate(normalizedCustomEnd.h, normalizedCustomEnd.m, normalizedCustomEnd.p, date)
+        : null;
+
+      if (isTimeFilled(normalizedCustomEnd.h, normalizedCustomEnd.m) && !customEnd) {
+        newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], endError: 'Hour 1–12, Minute 00/15/30/45' };
+      }
+      if (customStart && customEnd && compareTimes(customStart, customEnd) > 0) {
+        newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], endError: ORDERING_ERROR };
+      }
+    }
+  });
+
+  return newErrors;
+};
+
 // ============================================================================
 // INTERNAL SUBCOMPONENTS
 // ============================================================================
@@ -123,7 +264,7 @@ const TimeRow = React.memo(({
   styles,
   colors,
   typography,
-  saveAttempted,
+  showError,
 }: TimeRowProps) => {
   const hourValue = parts.h ? parseInt(parts.h, 10) : null;
   const minuteValue = parts.m ? parseInt(parts.m, 10) : null;
@@ -222,7 +363,7 @@ const TimeRow = React.memo(({
           ]}>✕</Text>
         </TouchableOpacity>
       </View>
-      {saveAttempted && !!error ? (
+      {showError && !!error ? (
         <Text style={styles.validationError}>{error}</Text>
       ) : null}
     </View>
@@ -230,6 +371,78 @@ const TimeRow = React.memo(({
 });
 
 TimeRow.displayName = 'TimeRow';
+
+const EMPTY_START_TIME_PARTS: TimeParts = { h: '', m: '', p: 'PM' };
+const EMPTY_END_TIME_PARTS: TimeParts = { h: '', m: '', p: 'PM' };
+
+interface EndTimeCollapsibleProps {
+  expanded: boolean;
+  onToggle: () => void;
+  endParts: TimeParts;
+  onEndChange: (parts: TimeParts) => void;
+  onEndClear: () => void;
+  error?: string;
+  showError: boolean;
+  small?: boolean;
+  touchTargets: any;
+  styles: any;
+  colors: any;
+  typography: any;
+}
+
+const EndTimeCollapsible = React.memo(({
+  expanded,
+  onToggle,
+  endParts,
+  onEndChange,
+  onEndClear,
+  error,
+  showError,
+  small,
+  touchTargets,
+  styles,
+  colors,
+  typography,
+}: EndTimeCollapsibleProps) => (
+  <View style={styles.endTimeCollapsible}>
+    <TouchableOpacity
+      style={[styles.endTimeToggleRow, small && styles.endTimeToggleRowSmall]}
+      onPress={onToggle}
+      accessibilityRole="button"
+      accessibilityLabel={expanded ? 'Hide end time' : 'Add end time'}
+      accessibilityHint={expanded ? 'Collapses end time inputs' : 'Expands end time inputs'}
+      hitSlop={touchTargets.small}
+    >
+      <View style={[styles.endTimeToggleIconBox, small && styles.endTimeToggleIconBoxSmall]}>
+        {expanded ? (
+          <Minus size={small ? 12 : 14} color={colors.accent} />
+        ) : (
+          <Plus size={small ? 12 : 14} color={colors.accent} />
+        )}
+      </View>
+      <Text style={[styles.endTimeToggleLabel, small && styles.endTimeToggleLabelSmall]}>
+        {expanded ? 'End time' : 'Add end time'}
+      </Text>
+    </TouchableOpacity> 
+    {expanded ? (
+      <TimeRow
+        label="End"
+        parts={endParts}
+        onChange={onEndChange}
+        onClear={onEndClear}
+        error={error}
+        small={small}
+        touchTargets={touchTargets}
+        styles={styles}
+        colors={colors}
+        typography={typography}
+        showError={showError}
+      />
+    ) : null}
+  </View>
+));
+
+EndTimeCollapsible.displayName = 'EndTimeCollapsible';
 
 const ValidationBanner: React.FC<{ visible: boolean; styles: any }> = ({ visible, styles }) => {
   if (!visible) return null;
@@ -277,17 +490,36 @@ const EventDetailsButton: React.FC<{
 const GlobalTimeInputs: React.FC<{
   startParts: TimeParts;
   endParts: TimeParts;
+  endExpanded: boolean;
+  onToggleEndExpanded: () => void;
   onStartChange: (parts: TimeParts) => void;
   onEndChange: (parts: TimeParts) => void;
   onStartClear: () => void;
   onEndClear: () => void;
   errors: { globalStart: string; globalEnd: string };
-  saveAttempted: boolean;
+  showStartError: boolean;
+  showEndError: boolean;
   styles: any;
   colors: any;
   typography: any;
   touchTargets: any;
-}> = ({ startParts, endParts, onStartChange, onEndChange, onStartClear, onEndClear, errors, saveAttempted, styles, colors, typography, touchTargets }) => (
+}> = ({
+  startParts,
+  endParts,
+  endExpanded,
+  onToggleEndExpanded,
+  onStartChange,
+  onEndChange,
+  onStartClear,
+  onEndClear,
+  errors,
+  showStartError,
+  showEndError,
+  styles,
+  colors,
+  typography,
+  touchTargets,
+}) => (
   <View style={styles.inputSection}>
     <Text style={styles.inputLabel}>Event Time</Text>
     <View style={styles.globalTimeInputs}>
@@ -301,19 +533,20 @@ const GlobalTimeInputs: React.FC<{
         styles={styles}
         colors={colors}
         typography={typography}
-        saveAttempted={saveAttempted}
+        showError={showStartError}
       />
-      <TimeRow
-        label="End"
-        parts={endParts}
-        onChange={onEndChange}
-        onClear={onEndClear}
+      <EndTimeCollapsible
+        expanded={endExpanded}
+        onToggle={onToggleEndExpanded}
+        endParts={endParts}
+        onEndChange={onEndChange}
+        onEndClear={onEndClear}
         error={errors.globalEnd}
+        showError={showEndError}
         touchTargets={touchTargets}
         styles={styles}
         colors={colors}
         typography={typography}
-        saveAttempted={saveAttempted}
       />
     </View>
   </View>
@@ -325,6 +558,8 @@ const DateCard: React.FC<{
   hasCustomLocation: boolean;
   startParts: TimeParts;
   endParts: TimeParts;
+  endExpanded: boolean;
+  onToggleEndExpanded: () => void;
   onStartChange: (parts: TimeParts) => void;
   onEndChange: (parts: TimeParts) => void;
   onStartClear: () => void;
@@ -335,7 +570,8 @@ const DateCard: React.FC<{
   location: string;
   displayTime: string;
   errors: { startError?: string; endError?: string };
-  saveAttempted: boolean;
+  showStartError: boolean;
+  showEndError: boolean;
   styles: any;
   colors: any;
   typography: any;
@@ -347,6 +583,8 @@ const DateCard: React.FC<{
   hasCustomLocation,
   startParts,
   endParts,
+  endExpanded,
+  onToggleEndExpanded,
   onStartChange,
   onEndChange,
   onStartClear,
@@ -357,7 +595,8 @@ const DateCard: React.FC<{
   location,
   displayTime,
   errors,
-  saveAttempted,
+  showStartError,
+  showEndError,
   styles,
   colors,
   typography,
@@ -387,28 +626,25 @@ const DateCard: React.FC<{
                 styles={styles}
                 colors={colors}
                 typography={typography}
-                saveAttempted={saveAttempted}
+                showError={showStartError}
               />
-              <TimeRow
-                label="End"
+              <EndTimeCollapsible
+                expanded={endExpanded}
+                onToggle={onToggleEndExpanded}
+                endParts={endParts}
+                onEndChange={onEndChange}
+                onEndClear={onEndClear}
+                error={errors.endError}
+                showError={showEndError}
                 small
-                parts={endParts}
-                onChange={onEndChange}
-                onClear={onEndClear}
                 touchTargets={touchTargets}
                 styles={styles}
                 colors={colors}
                 typography={typography}
-                saveAttempted={saveAttempted}
               />
-              {saveAttempted && (errors.startError || errors.endError) && (
+              {showStartError && errors.startError && (
                 <View style={styles.perDateErrorContainer}>
-                  {errors.startError && (
-                    <Text style={styles.validationError}>{errors.startError}</Text>
-                  )}
-                  {errors.endError && (
-                    <Text style={styles.validationError}>{errors.endError}</Text>
-                  )}
+                  <Text style={styles.validationError}>{errors.startError}</Text>
                 </View>
               )}
             </View>
@@ -504,6 +740,8 @@ export function DateReviewModal({
   const [perDateTimes, setPerDateTimes] = useState<Record<string, { start: TimeParts; end: TimeParts }>>({});
   const [customTimeDates, setCustomTimeDates] = useState<Set<string>>(new Set());
   const [customLocationDates, setCustomLocationDates] = useState<Set<string>>(new Set());
+  const [globalEndExpanded, setGlobalEndExpanded] = useState(!!eventOptions.endTime);
+  const [perDateEndExpanded, setPerDateEndExpanded] = useState<Set<string>>(new Set());
   const [showEventDetailsModal, setShowEventDetailsModal] = useState(false);
 
   // ============================================================================
@@ -536,14 +774,31 @@ export function DateReviewModal({
 
   const updateGlobalTime = useCallback((type: 'start' | 'end', parts: TimeParts) => {
     setGlobalTime(prev => ({ ...prev, [type]: parts }));
-    setErrors(prev => ({ ...prev, [`global${type === 'start' ? 'Start' : 'End'}`]: '' }));
   }, []);
 
   const clearGlobalTime = useCallback((type: 'start' | 'end') => {
-    setGlobalTime(prev => ({ ...prev, [type]: { h: '', m: '', p: 'AM' } }));
-    setErrors(prev => ({ ...prev, [`global${type === 'start' ? 'Start' : 'End'}`]: '' }));
+    setGlobalTime(prev => ({ ...prev, [type]: type === 'end' ? EMPTY_END_TIME_PARTS : EMPTY_START_TIME_PARTS }));
     announceForAccessibility(`${type === 'start' ? 'Start' : 'End'} time cleared`);
   }, [announceForAccessibility]);
+
+  const collapseGlobalEnd = useCallback(() => {
+    setGlobalEndExpanded(false);
+    setGlobalTime(prev => ({ ...prev, end: EMPTY_END_TIME_PARTS }));
+  }, []);
+
+  const toggleGlobalEndExpanded = useCallback(() => {
+    if (globalEndExpanded) {
+      collapseGlobalEnd();
+      announceForAccessibility('End time hidden');
+    } else {
+      setGlobalEndExpanded(true);
+      setGlobalTime(prev => ({
+        ...prev,
+        end: isTimeFilled(prev.end.h, prev.end.m) ? prev.end : EMPTY_END_TIME_PARTS,
+      }));
+      announceForAccessibility('End time expanded');
+    }
+  }, [globalEndExpanded, collapseGlobalEnd, announceForAccessibility]);
 
   const updatePerDateTime = useCallback((date: Date, type: 'start' | 'end', parts: TimeParts) => {
     const key = getDateKey(date);
@@ -555,10 +810,6 @@ export function DateReviewModal({
         [type]: parts
       }
     }));
-    setErrors(prev => ({
-      ...prev,
-      perDate: { ...prev.perDate, [key]: { ...prev.perDate[key], [`${type}Error`]: '' } }
-    }));
   }, []);
 
   const clearPerDateTime = useCallback((date: Date, type: 'start' | 'end') => {
@@ -568,14 +819,57 @@ export function DateReviewModal({
       [key]: {
         start: prev[key]?.start || { h: '', m: '', p: 'PM' },
         end: prev[key]?.end || { h: '', m: '', p: 'PM' },
-        [type]: { h: '', m: '', p: 'PM' }
+        [type]: type === 'end' ? EMPTY_END_TIME_PARTS : EMPTY_START_TIME_PARTS
       }
     }));
-    setErrors(prev => ({
+  }, []);
+
+  const collapsePerDateEnd = useCallback((date: Date) => {
+    const key = getDateKey(date);
+    setPerDateEndExpanded(prev => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+    setPerDateTimes(prev => ({
       ...prev,
-      perDate: { ...prev.perDate, [key]: { ...prev.perDate[key], [`${type}Error`]: '' } }
+      [key]: {
+        start: prev[key]?.start || { h: '', m: '', p: 'PM' },
+        end: EMPTY_END_TIME_PARTS,
+      }
+    }));
+    setDateSpecificOptions(prev => ({
+      ...prev,
+      [key]: {
+        location: prev[key]?.location ?? '',
+        startTime: prev[key]?.startTime ?? null,
+        endTime: null,
+      },
     }));
   }, []);
+
+  const togglePerDateEndExpanded = useCallback((date: Date) => {
+    const key = getDateKey(date);
+    if (perDateEndExpanded.has(key)) {
+      collapsePerDateEnd(date);
+      announceForAccessibility('End time hidden');
+    } else {
+      setPerDateEndExpanded(prev => new Set(prev).add(key));
+      setPerDateTimes(prev => ({
+        ...prev,
+        [key]: {
+          start: prev[key]?.start || { h: '', m: '', p: 'PM' },
+          end: (() => {
+            const existing = prev[key]?.end;
+            return existing && isTimeFilled(existing.h, existing.m)
+              ? existing
+              : EMPTY_END_TIME_PARTS;
+          })(),
+        },
+      }));
+      announceForAccessibility('End time expanded');
+    }
+  }, [perDateEndExpanded, collapsePerDateEnd, announceForAccessibility]);
 
   const toggleCustomTime = useCallback((date: Date) => {
     const dateKey = getDateKey(date);
@@ -583,10 +877,15 @@ export function DateReviewModal({
       const newSet = new Set(prev);
       if (newSet.has(dateKey)) {
         newSet.delete(dateKey);
-        setDateSpecificOptions(prev => ({
-          ...prev,
-          [dateKey]: { ...prev[dateKey], startTime: null, endTime: null }
+        setDateSpecificOptions(prevOptions => ({
+          ...prevOptions,
+          [dateKey]: { ...prevOptions[dateKey], startTime: null, endTime: null }
         }));
+        setPerDateEndExpanded(prevExpanded => {
+          const next = new Set(prevExpanded);
+          next.delete(dateKey);
+          return next;
+        });
       } else {
         newSet.add(dateKey);
       }
@@ -623,64 +922,67 @@ export function DateReviewModal({
   // VALIDATION LOGIC
   // ============================================================================
 
-  const validateAllTimes = useCallback(() => {
-    const newErrors = { globalStart: '', globalEnd: '', perDate: {} as Record<string, { startError?: string; endError?: string }> };
-    const normalizedGlobalStart = normalizeTimeParts(globalTime.start);
-    const normalizedGlobalEnd = normalizeTimeParts(globalTime.end);
+  const validationInput = useMemo<ValidateTimesInput>(() => ({
+    globalTime,
+    globalEndExpanded,
+    perDateTimes,
+    perDateEndExpanded,
+    selectedDates,
+    customTimeDates,
+  }), [globalTime, globalEndExpanded, perDateTimes, perDateEndExpanded, selectedDates, customTimeDates]);
 
-    // Validate global times
-    const globalStart = isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m)
-      ? timePartsToDate(normalizedGlobalStart.h, normalizedGlobalStart.m, normalizedGlobalStart.p, new Date())
-      : null;
-    const globalEnd = isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m)
-      ? timePartsToDate(normalizedGlobalEnd.h, normalizedGlobalEnd.m, normalizedGlobalEnd.p, new Date())
-      : null;
-
-    if (isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m) && !globalStart) {
-      newErrors.globalStart = 'Hour 1–12, Minute 00/15/30/45';
-    }
-    if (isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m) && !globalEnd) {
-      newErrors.globalEnd = 'Hour 1–12, Minute 00/15/30/45';
-    }
-    if (globalStart && globalEnd && compareTimes(globalStart, globalEnd) > 0) {
-      newErrors.globalEnd = 'End must be after Start';
-    }
-
-    // Validate per-date times
-    selectedDates.forEach(date => {
-      const dateKey = getDateKey(date);
-      if (customTimeDates.has(dateKey)) {
-        const dateTimes = perDateTimes[dateKey];
-        if (dateTimes) {
-          const normalizedCustomStart = normalizeTimeParts(dateTimes.start);
-          const normalizedCustomEnd = normalizeTimeParts(dateTimes.end);
-
-          const customStart = isTimeFilled(normalizedCustomStart.h, normalizedCustomStart.m)
-            ? timePartsToDate(normalizedCustomStart.h, normalizedCustomStart.m, normalizedCustomStart.p, date)
-            : null;
-          const customEnd = isTimeFilled(normalizedCustomEnd.h, normalizedCustomEnd.m)
-            ? timePartsToDate(normalizedCustomEnd.h, normalizedCustomEnd.m, normalizedCustomEnd.p, date)
-            : null;
-
-          if (isTimeFilled(normalizedCustomStart.h, normalizedCustomStart.m) && !customStart) {
-            newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], startError: 'Hour 1–12, Minute 00/15/30/45' };
-          }
-          if (isTimeFilled(normalizedCustomEnd.h, normalizedCustomEnd.m) && !customEnd) {
-            newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], endError: 'Hour 1–12, Minute 00/15/30/45' };
-          }
-          if (customStart && customEnd && compareTimes(customStart, customEnd) > 0) {
-            newErrors.perDate[dateKey] = { ...newErrors.perDate[dateKey], endError: 'End must be after Start' };
-          }
-        }
-      }
-    });
-
-    return newErrors;
-  }, [globalTime, perDateTimes, selectedDates, customTimeDates]);
+  const validateAllTimes = useCallback(
+    () => validateAllTimesPure(validationInput),
+    [validationInput]
+  );
 
   // ============================================================================
   // EFFECTS
   // ============================================================================
+
+  const wasVisibleRef = useRef(false);
+
+  React.useEffect(() => {
+    const justOpened = visible && !wasVisibleRef.current;
+    const justClosed = !visible && wasVisibleRef.current;
+    wasVisibleRef.current = visible;
+
+    if (justOpened) {
+      setGlobalTime({
+        start: dateToTimeParts(eventOptions.startTime),
+        end: dateToTimeParts(eventOptions.endTime),
+      });
+      setGlobalEndExpanded(!!eventOptions.endTime);
+      return;
+    }
+
+    if (justClosed) {
+      setGlobalEndExpanded(false);
+      setPerDateEndExpanded(new Set());
+      setValidationUI({ saveAttempted: false, showBanner: false });
+      setErrors({ globalStart: '', globalEnd: '', perDate: {} });
+    }
+  }, [visible, eventOptions.startTime, eventOptions.endTime]);
+
+  React.useEffect(() => {
+    if (!visible) return;
+
+    if (validationUI.saveAttempted) {
+      setErrors(validateAllTimesPure(validationInput));
+      return;
+    }
+
+    const ordering = validateOrderingOnly(validationInput);
+    setErrors({
+      globalStart: '',
+      globalEnd: ordering.globalEnd,
+      perDate: ordering.perDate,
+    });
+  }, [
+    visible,
+    validationUI.saveAttempted,
+    validationInput,
+  ]);
 
   React.useEffect(() => {
     if (validationUI.saveAttempted && validationUI.showBanner) {
@@ -700,6 +1002,13 @@ export function DateReviewModal({
   // ============================================================================
 
   if (!visible) return null;
+
+  const saveAttempted = validationUI.saveAttempted;
+  const showGlobalStartError = shouldShowTimeError(errors.globalStart, saveAttempted);
+  const showGlobalEndError = shouldShowTimeError(errors.globalEnd, saveAttempted, {
+    endExpanded: globalEndExpanded,
+    pairFilled: isPairFilled(globalTime.start, globalTime.end),
+  });
 
   return (
     <Modal
@@ -742,12 +1051,15 @@ export function DateReviewModal({
             <GlobalTimeInputs
               startParts={globalTime.start}
               endParts={globalTime.end}
+              endExpanded={globalEndExpanded}
+              onToggleEndExpanded={toggleGlobalEndExpanded}
               onStartChange={(p) => updateGlobalTime('start', p)}
               onEndChange={(p) => updateGlobalTime('end', p)}
               onStartClear={() => clearGlobalTime('start')}
               onEndClear={() => clearGlobalTime('end')}
               errors={errors}
-              saveAttempted={validationUI.saveAttempted}
+              showStartError={showGlobalStartError}
+              showEndError={showGlobalEndError}
               styles={styles}
               colors={colors}
               typography={typography}
@@ -761,20 +1073,31 @@ export function DateReviewModal({
               const hasCustomLocation = customLocationDates.has(dateKey);
               const dateTimes = perDateTimes[dateKey] || { start: { h: '', m: '', p: 'PM' as const }, end: { h: '', m: '', p: 'PM' as const } };
 
+              const globalStartDate = isTimeFilled(globalTime.start.h, globalTime.start.m)
+                ? timePartsToDate(globalTime.start.h, globalTime.start.m, globalTime.start.p, new Date())
+                : null;
+              const globalEndDate = globalEndExpanded && isTimeFilled(globalTime.end.h, globalTime.end.m)
+                ? timePartsToDate(globalTime.end.h, globalTime.end.m, globalTime.end.p, new Date())
+                : null;
+              const isPerDateEndExpanded = perDateEndExpanded.has(dateKey);
+              const customEndDate = isPerDateEndExpanded && isTimeFilled(dateTimes.end.h, dateTimes.end.m)
+                ? timePartsToDate(dateTimes.end.h, dateTimes.end.m, dateTimes.end.p, date)
+                : null;
+
               const displayTime = hasCustomTime
-                ? formatTimeDisplay(dateOptions.startTime, dateOptions.endTime)
-                : formatTimeDisplay(
-                  isTimeFilled(globalTime.start.h, globalTime.start.m)
-                    ? timePartsToDate(globalTime.start.h, globalTime.start.m, globalTime.start.p, new Date())
-                    : null,
-                  isTimeFilled(globalTime.end.h, globalTime.end.m)
-                    ? timePartsToDate(globalTime.end.h, globalTime.end.m, globalTime.end.p, new Date())
-                    : null
-                );
+                ? formatTimeDisplay(dateOptions.startTime, customEndDate)
+                : formatTimeDisplay(globalStartDate, globalEndDate);
 
               const displayLocation = hasCustomLocation
                 ? dateOptions.location
                 : (defaultLocation || 'Location not set');
+
+              const perDateErrors = errors.perDate[dateKey] || {};
+              const showPerDateStartError = shouldShowTimeError(perDateErrors.startError, saveAttempted);
+              const showPerDateEndError = shouldShowTimeError(perDateErrors.endError, saveAttempted, {
+                endExpanded: isPerDateEndExpanded,
+                pairFilled: isPairFilled(dateTimes.start, dateTimes.end),
+              });
 
               return (
                 <DateCard
@@ -784,6 +1107,8 @@ export function DateReviewModal({
                   hasCustomLocation={hasCustomLocation}
                   startParts={dateTimes.start}
                   endParts={dateTimes.end}
+                  endExpanded={isPerDateEndExpanded}
+                  onToggleEndExpanded={() => togglePerDateEndExpanded(date)}
                   onStartChange={(p) => {
                     updatePerDateTime(date, 'start', p);
                     const d = isTimeFilled(p.h, p.m) ? timePartsToDate(p.h, p.m, p.p, date) : null;
@@ -807,8 +1132,9 @@ export function DateReviewModal({
                   onLocationChange={(location) => updateDateSpecificOptions(date, { location })}
                   location={displayLocation}
                   displayTime={displayTime}
-                  errors={errors.perDate[dateKey] || {}}
-                  saveAttempted={validationUI.saveAttempted}
+                  errors={perDateErrors}
+                  showStartError={showPerDateStartError}
+                  showEndError={showPerDateEndError}
                   styles={styles}
                   colors={colors}
                   typography={typography}
@@ -853,15 +1179,24 @@ export function DateReviewModal({
 
                 const normalizedGlobalStart = normalizeTimeParts(globalTime.start);
                 const normalizedGlobalEnd = normalizeTimeParts(globalTime.end);
+                const sanitizedDateSpecificOptions = Object.fromEntries(
+                  Object.entries(dateSpecificOptions).map(([key, opts]) => [
+                    key,
+                    {
+                      ...opts,
+                      endTime: perDateEndExpanded.has(key) ? opts.endTime : null,
+                    },
+                  ])
+                );
                 const finalOptions = {
                   location: eventOptions.location,
                   startTime: isTimeFilled(normalizedGlobalStart.h, normalizedGlobalStart.m)
                     ? timePartsToDate(normalizedGlobalStart.h, normalizedGlobalStart.m, normalizedGlobalStart.p, new Date())
                     : null,
-                  endTime: isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m)
+                  endTime: globalEndExpanded && isTimeFilled(normalizedGlobalEnd.h, normalizedGlobalEnd.m)
                     ? timePartsToDate(normalizedGlobalEnd.h, normalizedGlobalEnd.m, normalizedGlobalEnd.p, new Date())
                     : null,
-                  dateSpecificOptions: dateSpecificOptions
+                  dateSpecificOptions: sanitizedDateSpecificOptions,
                 };
                 onFinalize(finalOptions);
                 announceForAccessibility('Event creation finalized');
@@ -1020,6 +1355,47 @@ const getStyles = (colors: any, typography: any, isMobile: boolean, screenWidth:
       alignItems: 'flex-start',
       marginTop: 4,
       gap: 8,
+    },
+    endTimeCollapsible: {
+      width: '100%',
+    },
+    endTimeToggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 4,
+      marginBottom: 4,
+      minWidth: 200,
+    },
+    endTimeToggleRowSmall: {
+      minWidth: 160,
+      paddingVertical: 4,
+      gap: 6,
+    },
+    endTimeToggleIconBox: {
+      width: 22,
+      height: 22,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    endTimeToggleIconBoxSmall: {
+      width: 18,
+      height: 18,
+      borderRadius: 3,
+    },
+    endTimeToggleLabel: {
+      fontFamily: typography.getFontFamily('semibold'),
+      fontSize: typography.fontSize.subheadline,
+      color: colors.accent,
+    },
+    endTimeToggleLabelSmall: {
+      fontSize: typography.fontSize.caption1,
     },
     timeInputContainer: {
       marginBottom: 8,

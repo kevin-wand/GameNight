@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, Modal, Platform, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Dice6, RotateCcw, Plus, Minus, X, Settings } from 'lucide-react-native';
+import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, Dices, RotateCcw, Plus, Minus, X, Settings } from 'lucide-react-native';
 import ToolsFooter from '@/components/ToolsFooter';
 import { useTheme } from '@/hooks/useTheme';
 import { useAccessibility } from '@/hooks/useAccessibility';
@@ -34,6 +34,13 @@ interface DiceResult {
 }
 
 const STANDARD_DICE_SIDES = [4, 6, 8, 10, 12, 20];
+
+const DICE_FACE_ICONS = [Dice1, Dice2, Dice3, Dice4, Dice5, Dice6] as const;
+
+function getResultDiceIcon(value: number) {
+  if (value > 6) return Dices;
+  return DICE_FACE_ICONS[value - 1];
+}
 
 export default function DigitalDiceScreen() {
   const router = useRouter();
@@ -174,7 +181,7 @@ export default function DigitalDiceScreen() {
 
     return (
       <Animated.View style={[styles.rollingDice]}>
-        <Dice6 size={48} color="#10b981" />
+        <Dices size={48} color="#10b981" />
       </Animated.View>
     );
   }, [styles]);
@@ -289,16 +296,19 @@ export default function DigitalDiceScreen() {
               contentContainerStyle={styles.resultsContainer}
               showsVerticalScrollIndicator={false}
             >
-              {results.map((dice, index) => (
-                <Animated.View
-                  key={dice.id}
-                  entering={ZoomIn.delay(index * 100).duration(300)}
-                  style={styles.resultDice}
-                >
-                  <Dice6 size={32} color="#10b981" />
-                  <Text style={styles.resultValue}>{dice.value}</Text>
-                </Animated.View>
-              ))}
+              {results.map((dice, index) => {
+                const ResultIcon = getResultDiceIcon(dice.value);
+                return (
+                  <Animated.View
+                    key={dice.id}
+                    entering={ZoomIn.delay(index * 100).duration(300)}
+                    style={styles.resultDice}
+                  >
+                    <ResultIcon size={32} color="#10b981" />
+                    <Text style={styles.resultValue}>{dice.value}</Text>
+                  </Animated.View>
+                );
+              })}
             </ScrollView>
 
             {numberOfDice > 1 && (
@@ -435,7 +445,7 @@ export default function DigitalDiceScreen() {
             accessibilityLabel={isRolling ? "Rolling dice" : "Roll dice"}
             accessibilityRole="button"
           >
-            <Dice6 size={28} color="#ffffff" />
+            <Dices size={28} color="#ffffff" />
             <Text style={styles.rollButtonText}>
               {isRolling ? 'Rolling...' : 'Roll Dice'}
             </Text>

@@ -379,7 +379,7 @@ function getStyles(colors: any, typography: any, touchTargets: any, insets: any)
     countdownText: {
       fontFamily: typography.getFontFamily('bold'),
       fontSize: countdownFontSize,
-      lineHeight: countdownFontSize * 1.05,
+      lineHeight: countdownFontSize * 1.2,
       color: colors.card,
     },
     revealOverlay: {

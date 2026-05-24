@@ -56,3 +56,4 @@ android/
 *.swp
 *.swo
 *~
+.env.local

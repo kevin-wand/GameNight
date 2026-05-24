@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TextStyle, ViewStyle, TouchableOpacity, ScrollView, TextInput, Alert, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Plus, Check, Users, ChevronDown, ChevronUp, Clock, Brain, Users as Users2, Baby, AlertTriangle, SquarePen } from 'lucide-react-native';
+import { X, Plus, Check, AlertTriangle, SquarePen } from 'lucide-react-native';
 import { supabase } from '@/services/supabase';
 import Toast from 'react-native-toast-message';
 import { decode } from 'html-entities';
@@ -565,40 +565,38 @@ export const EditPollModal: React.FC<EditPollModalProps> = ({
             </View>
           </View>
         </View>
+
+        <CreatePollModal
+          isVisible={showCreatePollModal}
+          onClose={() => setShowCreatePollModal(false)}
+          onSuccess={(pollType, addedGames) => {
+            setShowCreatePollModal(false);
+            if (pollType === 'add-games' && addedGames) {
+              // Add the new games to the current selection
+              setSelectedGames(current => [...current, ...addedGames]);
+              // Also add them to originalPollGames so they show up in the list
+              setOriginalPollGames(current => [...current, ...addedGames]);
+            } else {
+              // Refresh the games list for other cases
+              loadGames();
+            }
+          }}
+          preselectedGames={originalPollGames}
+          isAddingToExistingPoll={true}
+        />
+
+        <CreatePollDetails
+          isVisible={isDetailsModalVisible}
+          onClose={() => setIsDetailsModalVisible(false)}
+          onSave={(title, description) => {
+            setDynamicPollTitle(title);
+            setDynamicPollDescription(description);
+            setIsDetailsModalVisible(false);
+          }}
+          currentTitle={dynamicPollTitle}
+          currentDescription={dynamicPollDescription}
+        />
       </Modal>
-
-      {/* CreatePollModal for adding more games */}
-      <CreatePollModal
-        isVisible={showCreatePollModal}
-        onClose={() => setShowCreatePollModal(false)}
-        onSuccess={(pollType, addedGames) => {
-          setShowCreatePollModal(false);
-          if (pollType === 'add-games' && addedGames) {
-            // Add the new games to the current selection
-            setSelectedGames(current => [...current, ...addedGames]);
-            // Also add them to originalPollGames so they show up in the list
-            setOriginalPollGames(current => [...current, ...addedGames]);
-          } else {
-            // Refresh the games list for other cases
-            loadGames();
-          }
-        }}
-        preselectedGames={originalPollGames}
-        isAddingToExistingPoll={true}
-      />
-
-      {/* CreatePollDetails Modal for editing title and description */}
-      <CreatePollDetails
-        isVisible={isDetailsModalVisible}
-        onClose={() => setIsDetailsModalVisible(false)}
-        onSave={(title, description) => {
-          setDynamicPollTitle(title);
-          setDynamicPollDescription(description);
-          setIsDetailsModalVisible(false);
-        }}
-        currentTitle={dynamicPollTitle}
-        currentDescription={dynamicPollDescription}
-      />
     </>
   );
 };
