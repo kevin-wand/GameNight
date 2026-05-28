@@ -2,8 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import OpenAI from 'openai';
 import { parse } from 'csv-parse/sync';
+
 const INPUT_CSV = process.env.INPUT_CSV || 'tmp/games_with_descriptions_html_fix3.csv';
-const OUTPUT_CSV = process.env.OUTPUT_CSV || 'tmp/games_with_ai_summaries_preview_run4.csv';
+const OUTPUT_CSV = process.env.OUTPUT_CSV || 'tmp/games_with_ai_summaries_preview_run8.csv';
 const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 const LIMIT = Number(process.env.LIMIT || 25);
 const START_AT = Number(process.env.START_AT || 0);
@@ -24,15 +25,19 @@ const stripHtmlish = (text = '') =>
     .replace(/\s+/g, ' ')
     .trim();
 
-const normalizeText = (text = '') => String(text).replace(/\s+/g, ' ').trim();
-
-function parseBool(value) {
-  if (value === true || value === false) return value;
-  const s = String(value ?? '').toLowerCase().trim();
-  if (s === 'true' || s === '1' || s === 'yes') return true;
-  if (s === 'false' || s === '0' || s === 'no' || s === '') return false;
-  return Boolean(value);
+function prepareDescriptionText(text = '') {
+  return String(text)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-zA-Z#0-9]+;/g, ' ')
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n+/g, '\n')
+    .trim();
 }
+
+const normalizeText = (text = '') => String(text).replace(/\s+/g, ' ').trim();
 
 function wordCount(text) {
   const t = normalizeText(text);
@@ -40,194 +45,285 @@ function wordCount(text) {
   return t.split(/\s+/).filter(Boolean).length;
 }
 
-/** Count sentences split on . ! ? followed by space or end. Single clause without punctuation counts as 1. */
-function sentenceCount(text) {
+function splitSentences(text) {
   const t = normalizeText(text);
-  if (!t) return 0;
-  const parts = t.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
-  return parts.length === 0 ? 0 : parts.length;
+  if (!t) return [];
+  return t.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
 }
 
-const STOPWORDS = new Set([
-  'a', 'an', 'the', 'and', 'or', 'for', 'to', 'of', 'in', 'on', 'at', 'with', 'as', 'by',
-  'is', 'it', 'its', 'are', 'was', 'were', 'be', 'been', 'this', 'that', 'these', 'those',
-]);
-
-function contentTokens(text) {
-  return normalizeText(text)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+function sentenceCount(text) {
+  return splitSentences(text).length;
 }
 
-/** Heuristic: flag if many content words from short reappear in more (likely paraphrase repeat). */
-function likelyRepeatsShort(short, more, overlapRatio = 0.35) {
-  const shortSet = new Set(contentTokens(short));
-  if (shortSet.size === 0) return false;
-  const moreWords = contentTokens(more);
-  if (moreWords.length === 0) return false;
-  let hit = 0;
-  for (const w of moreWords) {
-    if (shortSet.has(w)) hit++;
+function truncatePipeList(value, maxSegments = 4) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return [];
+  return raw.split('|').map((p) => p.trim()).filter(Boolean).slice(0, maxSegments);
+}
+
+function parseMechanics(boardgamemechanic) {
+  return truncatePipeList(boardgamemechanic, 12);
+}
+
+function rankMechanics(mechanics, description) {
+  if (mechanics.length === 0) return [];
+  const descLower = prepareDescriptionText(description).toLowerCase();
+  const scored = mechanics.map((mechanic, idx) => {
+    const escaped = mechanic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matches = descLower.match(new RegExp(escaped.toLowerCase(), 'g'));
+    const freq = matches ? matches.length : 0;
+    return { mechanic, score: freq + (mechanics.length - idx) * 0.001 };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map((s) => s.mechanic);
+}
+
+function actionLabelFromLine(body) {
+  const cleaned = normalizeText(body);
+  if (!cleaned) return null;
+  const beforeDash = cleaned.split(/\s+-\s+/)[0];
+  const words = beforeDash.split(/\s+/).slice(0, 5).join(' ');
+  return words || null;
+}
+
+function extractNumberedListItems(description) {
+  const prepared = prepareDescriptionText(description);
+  const lines = prepared.split('\n').map((l) => l.trim()).filter(Boolean);
+  const items = [];
+  const numberedRe = /^\d+[\).]\s*(.+)$/i;
+
+  for (const line of lines) {
+    const match = line.match(numberedRe);
+    if (!match) continue;
+    const label = actionLabelFromLine(match[1]);
+    if (label) items.push(label);
   }
-  return hit / moreWords.length >= overlapRatio;
+
+  return items.slice(0, 6);
 }
 
-function truncatePipeList(value, maxSegments = 4, maxChars = 220) {
-  const raw = String(value ?? '').trim();
-  if (!raw) return '';
-  const parts = raw.split('|').map((p) => p.trim()).filter(Boolean).slice(0, maxSegments);
-  let out = parts.join(' | ');
-  if (out.length > maxChars) out = `${out.slice(0, maxChars).trim()}…`;
-  return out;
+function extractBulletedOrIndentedActions(description) {
+  const prepared = prepareDescriptionText(description);
+  const lines = prepared.split('\n');
+  const items = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    if (/^[•\-*]\s+/.test(trimmed)) {
+      const label = actionLabelFromLine(trimmed.replace(/^[•\-*]\s+/, ''));
+      if (label) items.push(label);
+      continue;
+    }
+
+    const headerMatch = trimmed.match(/^([A-Z][A-Z\s]{1,24}):\s*(.+)$/);
+    if (headerMatch) {
+      const header = normalizeText(headerMatch[1]);
+      if (header.length <= 24 && !/^(THE|AND|FOR)$/i.test(header)) {
+        items.push(header);
+      }
+    }
+  }
+
+  return [...new Set(items)].slice(0, 6);
 }
 
-function normalizeRecPlayers(value) {
-  const raw = String(value ?? '').trim();
-  if (!raw) return null;
+const WIN_SENTENCE_PATTERNS = [
+  /\bto win(?: the game)?\b/i,
+  /\bwin(?:s)? the game\b/i,
+  /\bwin by\b/i,
+  /\bmost\s+vps?\b/i,
+  /\bvictory\s+points?\b/i,
+  /\bwhoever\b.*\bwins?\b/i,
+  /\bultimate\s+goal\b/i,
+  /\bgoal\s+is\s+to\b/i,
+  /\bfirst\s+to\b.*\bwins?\b/i,
+  /\bplayer\s+with\s+the\s+most\b/i,
+];
 
-  const normalizedParts = raw
-    .split(',')
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((part) => {
-      if (/^\d+-\d+$/.test(part)) return part;
-      if (/^\d+$/.test(part)) return String(Number(part));
-      if (/^0+\d+$/.test(part)) return String(Number(part));
-      return part;
-    });
+const FLAVOR_SKIP = /description from the publisher|kickstarter|board game arena/i;
 
-  if (normalizedParts.length === 0) return null;
-  if (normalizedParts.length === 1) return normalizedParts[0];
-  return normalizedParts.join(' or ');
+function splitDescriptionSentences(text) {
+  const prepared = prepareDescriptionText(text);
+  return prepared
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((s) => normalizeText(s))
+    .filter((s) => s.length > 12);
+}
+
+function extractWinCondition(description) {
+  const sentences = splitDescriptionSentences(description);
+  for (const sentence of sentences) {
+    if (FLAVOR_SKIP.test(sentence)) continue;
+    if (WIN_SENTENCE_PATTERNS.some((pattern) => pattern.test(sentence))) {
+      return sentence.length > 200 ? `${sentence.slice(0, 197)}...` : sentence;
+    }
+  }
+  return null;
+}
+
+function extractPlayExcerpt(description, mechanics, maxSentences = 2) {
+  if (mechanics.length === 0) return null;
+
+  const sentences = splitDescriptionSentences(description);
+  const scored = sentences
+    .filter((s) => !FLAVOR_SKIP.test(s))
+    .map((sentence) => {
+      const lower = sentence.toLowerCase();
+      let score = 0;
+
+      for (const mechanic of mechanics) {
+        if (lower.includes(mechanic.toLowerCase())) score += 2;
+      }
+
+      if (/\b(you|players?|each turn|round|action)\b/i.test(sentence)) score += 1;
+      if (WIN_SENTENCE_PATTERNS.some((pattern) => pattern.test(sentence))) score -= 1;
+
+      return { sentence, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length === 0) return null;
+
+  return scored
+    .slice(0, maxSentences)
+    .map((x) => x.sentence)
+    .join(' ');
+}
+
+function extractIdentityContext(description) {
+  const sentences = splitDescriptionSentences(description)
+    .filter((sentence) => !FLAVOR_SKIP.test(sentence))
+    .filter((sentence) => !/^\d+[\).]/.test(sentence))
+    .filter((sentence) => !WIN_SENTENCE_PATTERNS.some((pattern) => pattern.test(sentence)));
+
+  if (sentences.length === 0) return null;
+  return sentences.slice(0, 2).join(' ');
+}
+
+function buildSummaryContext(description, mechanicsAll, mechanicsPrimary) {
+  const numbered = extractNumberedListItems(description);
+  const bulleted = extractBulletedOrIndentedActions(description);
+  const turnActions = [...new Set([...numbered, ...bulleted])].slice(0, 6);
+  const winCondition = extractWinCondition(description);
+  const identityContext = extractIdentityContext(description);
+
+  let fallbackPlayLine = null;
+  if (turnActions.length === 0 && !winCondition) {
+    fallbackPlayLine = extractPlayExcerpt(description, mechanicsAll, 2);
+  }
+
+  const primarySet = new Set(mechanicsPrimary.map((m) => m.toLowerCase()));
+  const extraMechanics = mechanicsAll.filter((m) => !primarySet.has(m.toLowerCase())).slice(0, 3);
+
+  return {
+    identity_context: identityContext,
+    turn_actions: turnActions,
+    win_condition: winCondition,
+    extra_mechanics: extraMechanics,
+    fallback_play_line: fallbackPlayLine,
+  };
 }
 
 function buildUserPayload(row) {
-  const minP = row.min_players != null && String(row.min_players).trim() !== '' ? row.min_players : null;
-  const maxP = row.max_players != null && String(row.max_players).trim() !== '' ? row.max_players : null;
-  const playerRange =
-    minP != null && maxP != null ? `${minP}-${maxP}` : minP != null ? `${minP}+` : maxP != null ? `up to ${maxP}` : null;
-  const recRaw = row.rec_players != null && String(row.rec_players).trim() !== '' ? String(row.rec_players).trim() : null;
-  const recNormalized = normalizeRecPlayers(recRaw);
-  const bestRaw = row.best_players != null && String(row.best_players).trim() !== '' ? String(row.best_players).trim() : null;
+  const description = row.description || '';
+  const mechanicsAll = parseMechanics(row.boardgamemechanic);
+  const mechanicsRanked = rankMechanics(mechanicsAll, description);
+  const mechanicsPrimary = mechanicsRanked.slice(0, 2);
+  const categories = truncatePipeList(row.boardgamecategory, 4);
+  const themeTags = truncatePipeList(row.boardgamefamily, 4);
 
   return {
     game_id: row.id,
     title: row.name,
-    categories: truncatePipeList(row.boardgamecategory, 5, 280),
-    mechanics: truncatePipeList(row.boardgamemechanic, 6, 320),
-    theme_tags: truncatePipeList(row.boardgamefamily, 4, 200),
-    theme_excerpt: stripHtmlish(row.description || '').slice(0, 1200),
-    play_profile: {
-      minutes: row.playing_time != null && row.playing_time !== '' ? Number(row.playing_time) : null,
-      recommended_players_raw: recRaw,
-      recommended_players_normalized: recNormalized,
-      best_at_players: bestRaw,
-      rec_players_display: recNormalized || bestRaw || playerRange || null,
-      cooperative: parseBool(row.is_cooperative),
-      team_based: parseBool(row.is_teambased),
-      player_range: playerRange,
-    },
+    categories,
+    mechanics_primary: mechanicsPrimary,
+    summary_context: buildSummaryContext(description, mechanicsAll, mechanicsPrimary),
+    theme_tags: themeTags,
   };
 }
 
 function buildSystemPrompt() {
   return [
     `## Role
-You write concise mobile board-game blurbs for voters skimming a list.`,
+You are a board game summarizer. Write concise editorial capsule summaries based only on the provided BoardGameGeek-derived data.`,
 
     `## Output format
-Return JSON only: {"summary_short":"...","summary_more":"..."}
+Return JSON only: {"summary_full":"..."}
 Plain text only. No markdown, no emojis.`,
 
-    `## summary_short
-- Exactly one sentence.
-- At most 15 words.
-- Start with: Rec players: <value>.
-- Use rec_players_display, which should prefer recommended_players_normalized. Example: raw "1-4,06" becomes "1-4 or 6".
-- Then include cooperative/competitive posture and one core mechanic phrase.
-- Do not include color or flavor-heavy wording.
-- Do not repeat the game title unless necessary.`,
+    `## Required structure
+- Write exactly 3 sentences.
+- Use second person.
+- Sentence 1: who you are as a player, with light role or setting if supported by summary_context.identity_context or categories.
+- Sentence 2: what you do during play, using concrete actions from summary_context.turn_actions or summary_context.fallback_play_line.
+- Sentence 3: how you win, using summary_context.win_condition when available.
+- Prefer action language over mechanic labels; do not say labels like "worker placement" or "deck-building" unless no natural action wording is possible.`,
 
-    `## summary_more
-- Exactly one additional sentence.
-- At most 25 words.
-- Must add new information; do not repeat or paraphrase summary_short (no restating the same mechanism, player count, or genre line).
-- Deemphasize flavor text; prioritize extra mechanics, play-time/team-based details, and optional high-level similarity cues from theme_tags/boardgamefamily.
-- Optional comparison-style cue only if it adds clarity; avoid overusing openers such as "Think of"—vary phrasing; do not ban them entirely.`,
+    `## Evidence hierarchy
+- Sentence 1: summary_context.identity_context first, then categories, then theme_tags lightly.
+- Sentence 2: summary_context.turn_actions first, then fallback_play_line, then mechanics_primary as evidence.
+- Sentence 3: summary_context.win_condition first. If absent, infer the clearest objective from the provided context.`,
 
-    `## What to emphasize (topics to look for)
-- Game type and genre feel (categories).
-- Core mechanism and what players do (mechanics).
-- Who it fits: recommended player count from rec_players first, then co-op vs competitive, team play, and typical play time.
-- For summary_more, focus on practical play detail over setting/theme.`,
+    `## Exemptions
+- No publisher filler.
+- No tag dumps.
+- Avoid lore-heavy flavor that does not explain what the player does or how the game is won.`,
 
-    `## What to use lightly
-- Theme tags—vibe only, not a tag dump.
-- Long description excerpt—use sparingly; do not let flavor dominate output.`,
-
-    `## Exemptions (do not put in blurbs)
-- Turn-by-turn rules, action lists, scoring detail.
-- Publisher or marketing filler, crowdfunding or digital-app mentions.
-- Verbatim pipe-separated tag strings; synthesize instead.
-- Image URLs, ranks, or internal IDs.`,
+    `## Style target
+- Specific and concrete, like the provided store-copy examples.
+- Sentence 1 usually begins with "You're" or "You are".
+- Sentence 3 should clearly describe the win condition and preferably begin with "Win by".`,
   ].join('\n\n');
 }
 
-function validateSummaries(summaryShort, summaryMore) {
-  const issues = [];
-  const shortWords = wordCount(summaryShort);
-  const moreWords = wordCount(summaryMore);
-  const shortSent = sentenceCount(summaryShort);
-  const moreSent = sentenceCount(summaryMore);
-
-  if (!summaryShort) issues.push('summary_short is empty');
-  if (!summaryMore) issues.push('summary_more is empty');
-  if (shortSent !== 1) issues.push(`summary_short must be exactly 1 sentence (found ${shortSent})`);
-  if (moreSent !== 1) issues.push(`summary_more must be exactly 1 sentence (found ${moreSent})`);
-  if (!/^rec players:\s*/i.test(summaryShort)) {
-    issues.push('summary_short must start with "Rec players: <value>"');
-  }
-
-  const shortTight = summaryShort.length > 120;
-  const moreTight = summaryMore.length > 150;
-
-  const shortMaxWords = shortTight ? 12 : 15;
-  const moreMaxWords = moreTight ? 20 : 25;
-
-  if (shortWords > shortMaxWords) {
-    issues.push(
-      shortTight
-        ? `summary_short has ${shortWords} words; because length >120 chars, use at most 12 words`
-        : `summary_short has ${shortWords} words; use at most 15 words`,
-    );
-  }
-  if (moreWords > moreMaxWords) {
-    issues.push(
-      moreTight
-        ? `summary_more has ${moreWords} words; because length >150 chars, use at most 20 words`
-        : `summary_more has ${moreWords} words; use at most 25 words`,
-    );
-  }
-
-  if (likelyRepeatsShort(summaryShort, summaryMore)) {
-    issues.push('summary_more likely repeats ideas from summary_short; rewrite more with only new angles');
-  }
-
-  return { valid: issues.length === 0, issues, shortMaxWords, moreMaxWords, shortWords, moreWords, shortSent, moreSent };
+function hasSecondPerson(summaryFull) {
+  return /\b(?:You're|You are|You\b)/i.test(summaryFull);
 }
 
-async function callOpenAIJson({ system, user }) {
+function thirdSentenceHasWinClause(thirdSentence) {
+  return /^\s*Win by\b/i.test(thirdSentence) || WIN_SENTENCE_PATTERNS.some((pattern) => pattern.test(thirdSentence));
+}
+
+function validateSummary(summaryFull, payload) {
+  const issues = [];
+  const sentences = splitSentences(summaryFull);
+
+  if (!summaryFull) issues.push('summary_full is empty');
+  if (sentences.length !== 3) issues.push(`summary_full must be exactly 3 sentences (found ${sentences.length})`);
+  if (sentences.length > 0 && !/^\s*(You're|You are)\b/i.test(sentences[0])) {
+    issues.push('sentence 1 should start with "You are" or "You\'re"');
+  }
+  if (!hasSecondPerson(summaryFull)) {
+    issues.push('summary_full should use second-person voice');
+  }
+
+  const thirdSentence = sentences[2] || '';
+  if (payload.summary_context?.win_condition && !thirdSentenceHasWinClause(thirdSentence)) {
+    issues.push('sentence 3 should clearly describe how you win');
+  }
+
+  return {
+    valid: issues.length === 0,
+    issues,
+    sentenceCount: sentences.length,
+    wordCount: wordCount(summaryFull),
+  };
+}
+
+async function callOpenAIJson({ system, user, temperature = 0.4 }) {
   const res = await openai.chat.completions.create({
     model: MODEL,
-    temperature: 0.4,
+    temperature,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },
     ],
     response_format: { type: 'json_object' },
   });
+
   const raw = res.choices?.[0]?.message?.content || '{}';
   try {
     return { parsed: JSON.parse(raw), raw };
@@ -236,17 +332,15 @@ async function callOpenAIJson({ system, user }) {
   }
 }
 
-async function repairSummaries({ summaryShort, summaryMore, issues, payload }) {
+async function repairSummary({ summaryFull, issues, payload }) {
   const repairUser = JSON.stringify(
     {
       issues,
-      current: { summary_short: summaryShort, summary_more: summaryMore },
+      current: { summary_full: summaryFull },
       game_context: payload,
       rewrite_rules: {
-        summary_short:
-          'Exactly one sentence. Must start with "Rec players: <value>". Then include cooperative/competitive and one core mechanic. Respect word cap from issues. No hard truncation by you—end on a complete clause.',
-        summary_more:
-          'Exactly one new sentence. Must not repeat or paraphrase summary_short. Deemphasize flavor text and prioritize extra mechanics + play-time/team details + optional similarity cue. Respect word cap from issues. End on a complete clause.',
+        summary_full:
+          'Exactly 3 sentences. Sentence 1 = who you are. Sentence 2 = what you do. Sentence 3 = how you win. Be concrete and specific.',
       },
     },
     null,
@@ -255,78 +349,67 @@ async function repairSummaries({ summaryShort, summaryMore, issues, payload }) {
 
   const repairSystem = [
     `## Role
-You fix board-game blurbs to satisfy strict structure and length rules.`,
+You fix board-game summaries to satisfy structure, clarity, and style rules.`,
 
     `## Output format
-Return JSON only: {"summary_short":"...","summary_more":"..."}
+Return JSON only: {"summary_full":"..."}
 Plain text only. No markdown, no emojis.`,
 
     `## Rules
 - Apply every issue listed in the user message until resolved.
-- Do not truncate mid-word or mid-thought; shorten by removing phrases, not by cutting off text.
-- Avoid repetitive sentence starts (e.g. overusing "Think of"); vary phrasing; do not ban "Think of" entirely.`,
+- Preserve exactly 3 sentences.
+- If sentence 3 does not clearly explain how you win, rewrite sentence 3.
+- If output is too flavor-heavy, replace flavor with concrete actions and win clarity.
+- Do not truncate mid-word or mid-thought; shorten by rewriting.`,
   ].join('\n\n');
 
-  const res = await openai.chat.completions.create({
-    model: MODEL,
+  return callOpenAIJson({
+    system: repairSystem,
+    user: repairUser,
     temperature: 0.3,
-    messages: [
-      { role: 'system', content: repairSystem },
-      { role: 'user', content: repairUser },
-    ],
-    response_format: { type: 'json_object' },
   });
-  const raw = res.choices?.[0]?.message?.content || '{}';
-  try {
-    return { parsed: JSON.parse(raw), raw };
-  } catch {
-    return { parsed: {}, raw };
-  }
 }
 
-async function generateSummaries(row) {
+async function generateSummary(row) {
   const payload = buildUserPayload(row);
   const system = buildSystemPrompt();
   const user = `Game data:\n${JSON.stringify(payload, null, 2)}`;
 
-  const initial = await callOpenAIJson({ system, user });
-  let summaryShort = normalizeText(initial.parsed.summary_short || '');
-  let summaryMore = normalizeText(initial.parsed.summary_more || '');
+  const initial = await callOpenAIJson({ system, user, temperature: 0.4 });
+  let summaryFull = normalizeText(initial.parsed.summary_full || '');
   const rawInitial = initial.raw;
 
   let repairPasses = 0;
   let lastRepairRaw = '';
 
   for (let pass = 0; pass < MAX_REPAIR_PASSES; pass++) {
-    const v = validateSummaries(summaryShort, summaryMore);
-    if (v.valid) break;
+    const validation = validateSummary(summaryFull, payload);
+    if (validation.valid) break;
 
     repairPasses++;
-    const { parsed, raw } = await repairSummaries({
-      summaryShort,
-      summaryMore,
-      issues: v.issues,
+    const { parsed, raw } = await repairSummary({
+      summaryFull,
+      issues: validation.issues,
       payload,
     });
     lastRepairRaw = raw;
-    summaryShort = normalizeText(parsed.summary_short || summaryShort);
-    summaryMore = normalizeText(parsed.summary_more || summaryMore);
+    summaryFull = normalizeText(parsed.summary_full || summaryFull);
   }
 
-  const finalV = validateSummaries(summaryShort, summaryMore);
+  const finalValidation = validateSummary(summaryFull, payload);
 
   return {
-    summary_short: summaryShort,
-    summary_more: summaryMore,
+    summary_full: summaryFull,
     raw_response: rawInitial,
     repair_raw_last: lastRepairRaw,
     repair_passes: repairPasses,
-    short_words: finalV.shortWords,
-    more_words: finalV.moreWords,
-    short_sentences: finalV.shortSent,
-    more_sentences: finalV.moreSent,
-    validation_ok: finalV.valid,
-    validation_issues: finalV.issues.join(' | '),
+    word_count: finalValidation.wordCount,
+    sentence_count: finalValidation.sentenceCount,
+    validation_ok: finalValidation.valid,
+    validation_issues: finalValidation.issues.join(' | '),
+    identity_context_extracted: payload.summary_context?.identity_context || '',
+    turn_actions_extracted: (payload.summary_context?.turn_actions || []).join('; '),
+    win_condition_extracted: payload.summary_context?.win_condition || '',
   };
 }
 
@@ -339,27 +422,27 @@ async function main() {
     skip_empty_lines: true,
     relax_quotes: true,
   });
+
   const slice = rows.slice(START_AT, START_AT + LIMIT);
   console.log(`Loaded ${rows.length} rows. Processing ${slice.length} rows...`);
+
   const out = [];
   for (let i = 0; i < slice.length; i++) {
     const row = slice[i];
     try {
-      const result = await generateSummaries(row);
+      const result = await generateSummary(row);
       out.push({
         id: row.id,
         name: row.name,
-        summary_short: result.summary_short,
-        summary_more: result.summary_more,
-        short_len: result.summary_short.length,
-        more_len: result.summary_more.length,
-        short_words: result.short_words,
-        more_words: result.more_words,
-        short_sentences: result.short_sentences,
-        more_sentences: result.more_sentences,
+        summary_full: result.summary_full,
+        word_count: result.word_count,
+        sentence_count: result.sentence_count,
         repair_passes: result.repair_passes,
         validation_ok: result.validation_ok,
         validation_issues: result.validation_issues,
+        identity_context_extracted: result.identity_context_extracted,
+        turn_actions_extracted: result.turn_actions_extracted,
+        win_condition_extracted: result.win_condition_extracted,
         raw_response: result.raw_response,
         repair_raw_last: result.repair_raw_last,
       });
@@ -368,62 +451,59 @@ async function main() {
       out.push({
         id: row.id,
         name: row.name,
-        summary_short: '',
-        summary_more: '',
-        short_len: 0,
-        more_len: 0,
-        short_words: 0,
-        more_words: 0,
-        short_sentences: 0,
-        more_sentences: 0,
+        summary_full: '',
+        word_count: 0,
+        sentence_count: 0,
         repair_passes: 0,
         validation_ok: false,
         validation_issues: '',
+        identity_context_extracted: '',
+        turn_actions_extracted: '',
+        win_condition_extracted: '',
         raw_response: `ERROR: ${err.message}`,
         repair_raw_last: '',
       });
       console.log(`[${i + 1}/${slice.length}] FAIL: ${row.name} -> ${err.message}`);
     }
   }
+
   const header = [
     'id',
     'name',
-    'summary_short',
-    'summary_more',
-    'short_len',
-    'more_len',
-    'short_words',
-    'more_words',
-    'short_sentences',
-    'more_sentences',
+    'summary_full',
+    'word_count',
+    'sentence_count',
     'repair_passes',
     'validation_ok',
     'validation_issues',
+    'identity_context_extracted',
+    'turn_actions_extracted',
+    'win_condition_extracted',
     'raw_response',
     'repair_raw_last',
   ];
+
   const lines = [
     header.join(','),
     ...out.map((r) =>
       [
         escapeCsv(r.id),
         escapeCsv(r.name),
-        escapeCsv(r.summary_short),
-        escapeCsv(r.summary_more),
-        escapeCsv(r.short_len),
-        escapeCsv(r.more_len),
-        escapeCsv(r.short_words),
-        escapeCsv(r.more_words),
-        escapeCsv(r.short_sentences),
-        escapeCsv(r.more_sentences),
+        escapeCsv(r.summary_full),
+        escapeCsv(r.word_count),
+        escapeCsv(r.sentence_count),
         escapeCsv(r.repair_passes),
         escapeCsv(r.validation_ok),
         escapeCsv(r.validation_issues),
+        escapeCsv(r.identity_context_extracted),
+        escapeCsv(r.turn_actions_extracted),
+        escapeCsv(r.win_condition_extracted),
         escapeCsv(r.raw_response),
         escapeCsv(r.repair_raw_last),
       ].join(','),
     ),
   ];
+
   await fs.writeFile(absoluteOutput, `${lines.join('\n')}\n`, 'utf8');
   console.log(`Done. Wrote preview CSV: ${absoluteOutput}`);
 }
